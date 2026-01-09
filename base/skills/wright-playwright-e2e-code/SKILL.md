@@ -1,40 +1,90 @@
 ---
 name: wright-playwright-e2e-code
-description: Playwright を用いた E2E テストコードを生成します。test.step を使った日本語ベースの実装スタイルに従い、コメント禁止の規約を守ります。E2E テスト、Playwright、テストコード生成が必要な場合に使用してください。
+description: Playwright E2E テストコードを生成。test.step で日本語ステップ名を使用し、コメント禁止。E2E テスト作成・Playwright コード生成時に使用。
 ---
 
-Playwright を用いた E2E テストの操作ロジックを記述してください。
-以下の実装スタイルに厳密に従う必要があります。
+# Playwright E2E テスト
 
-## 最重要スタイルガイド：コメント禁止・日本語 Step 強制
+## 必須ルール
 
-テスト内の論理的な区切りは、コメントではなく `await test.step("日本語", async () => { ... })` で表現します。
-「何をして、何を確認するか」がテストレポート上で読める日本語の step 名にします（体言止めよりも動作が分かる表現を優先）。
-step は細かすぎず粗すぎず、ユーザー操作単位・UI 状態確認単位で区切ります。必要なら step の入れ子も使います。
-アサーション（expect）も可能な限り、関連する `test.step` の内部に含めてください。
+1. **コメント禁止**: 論理的な区切りはすべて `test.step("日本語", async () => { ... })` で表現
+2. **日本語ステップ名**: 「何をして、何を確認するか」が分かる表現（体言止めより動作表現を優先）
+3. **適切な粒度**: ユーザー操作単位・UI 状態確認単位で区切る（入れ子も可）
+4. **expect は step 内に含める**
 
-## 良い記述例（Good）
+## 記述例
+
+**Good:**
 
 ```typescript
 await test.step("ダウンロードボタンをクリックしてモーダルを表示", async () => {
-  const downloadButton = page.getByRole("button", { name: "ダウンロード" });
-  await downloadButton.click();
+  await page.getByRole("button", { name: "ダウンロード" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
 });
 
 await test.step("モーダル内の規約リンクが正しいか確認", async () => {
-  const link = page.getByRole("link", { name: "利用規約" });
-  await expect(link).toHaveAttribute("href", "/term/");
+  await expect(page.getByRole("link", { name: "利用規約" })).toHaveAttribute(
+    "href",
+    "/term/",
+  );
 });
 ```
 
-## 悪い記述例（Bad）
+**Bad:**
 
 ```typescript
-// ダウンロードボタンをクリック
 await page.getByRole("button", { name: "ダウンロード" }).click();
-// モーダルが表示されたか確認
 await expect(page.getByRole("dialog")).toBeVisible();
 ```
 
-既存ファイル・関数名の指定がある場合はそれを最優先し、ない場合は既存 E2E で使われている名前・流儀に合わせて実装する。
+## 共通化
+
+### locator・変数の共有
+
+複数 step で使う locator は test 関数直下で宣言する。
+
+**Good:**
+
+```typescript
+test("テスト名", async ({ page }) => {
+  const input = page.getByLabel("入力欄");
+  const accentPhrase = page.locator(".accent-phrase");
+
+  await test.step("入力", async () => {
+    await input.fill("テスト");
+  });
+
+  await test.step("検証", async () => {
+    await expect(input).toHaveValue("テスト");
+    await expect(accentPhrase).toBeVisible();
+  });
+});
+```
+
+**Bad:**
+
+```typescript
+test("テスト名", async ({ page }) => {
+  await test.step("入力", async () => {
+    const input = page.getByLabel("入力欄");
+    await input.fill("テスト");
+  });
+
+  await test.step("検証", async () => {
+    const input = page.getByLabel("入力欄");
+    await expect(input).toHaveValue("テスト");
+  });
+});
+```
+
+### ロジックの共通化
+
+| スコープ              | 方法                                  |
+| --------------------- | ------------------------------------- |
+| test 内のみ           | test 関数内で変数やローカル関数を定義 |
+| ファイル内の複数 test | ファイルスコープでローカル関数を定義  |
+| 複数ファイル          | 共通ファイルにエクスポート関数を追加  |
+
+## 既存コードとの整合
+
+既存ファイル・関数名の指定がある場合はそれを優先。ない場合は既存 E2E の命名・スタイルに合わせる。
