@@ -43,27 +43,39 @@ await expect(page.getByRole("dialog")).toBeVisible();
 
 ### locator・変数の共有
 
-複数 step で使う locator は test 関数直下で宣言する。
+複数 step で使う locator は test 関数直下で宣言し、1つの step でのみ使う locator は step 内で宣言する。
 
 Good:
 
 ```typescript
 test("テスト名", async ({ page }) => {
   const input = page.getByLabel("入力欄");
-  const accentPhrase = page.locator(".accent-phrase");
 
   await test.step("入力", async () => {
     await input.fill("テスト");
   });
 
   await test.step("検証", async () => {
+    const accentPhrase = page.locator(".accent-phrase");
     await expect(input).toHaveValue("テスト");
     await expect(accentPhrase).toBeVisible();
   });
 });
 ```
 
-Bad:
+Bad 1 (不要な外部宣言):
+
+```typescript
+test("テスト名", async ({ page }) => {
+  const accentPhrase = page.locator(".accent-phrase");
+
+  await test.step("検証", async () => {
+    await expect(accentPhrase).toBeVisible();
+  });
+});
+```
+
+Bad 2 (重複宣言):
 
 ```typescript
 test("テスト名", async ({ page }) => {
