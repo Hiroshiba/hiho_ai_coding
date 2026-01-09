@@ -142,7 +142,9 @@
     ],
     "deny": [
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "NotebookEdit",
+      "WebSearch"
     ]
   },
   "env": {
