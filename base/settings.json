@@ -138,7 +138,8 @@
       "Bash(hiho_get_pr_detail_comments_review_threads:*)",
       "Bash(hiho_get_pr_review_thread_by_comment_id:*)",
       "Read(//tmp/**)",
-      "Edit(//tmp/**)"
+      "Edit(//tmp/**)",
+      "Read(~/Github/hiho_ai_coding/**)"
     ],
     "deny": [
       "WebFetch(domain:github.com)",
