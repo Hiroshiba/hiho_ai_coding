@@ -3,6 +3,7 @@
 このスクリプトは以下の同期処理を実行します:
 - base/rules/*.md → ~/.claude/rules/
 - base/commands/*.md → ~/.claude/commands/
+- base/skills/*.md → ~/.claude/skills/
 - base/settings.json を ~/.claude/settings.json にマージ
 """
 import json
@@ -22,6 +23,12 @@ def get_project_commands_dir() -> Path:
     return script_path.parent / "base" / "commands"
 
 
+def get_project_skills_dir() -> Path:
+    """プロジェクトの base/skills/ のパスを取得"""
+    script_path = Path(__file__).resolve()
+    return script_path.parent / "base" / "skills"
+
+
 def get_project_settings_path() -> Path:
     """プロジェクトの base/settings.json のパスを取得"""
     script_path = Path(__file__).resolve()
@@ -36,6 +43,11 @@ def get_claude_rules_dir() -> Path:
 def get_claude_commands_dir() -> Path:
     """~/.claude/commands/ のパスを取得"""
     return Path.home() / ".claude" / "commands"
+
+
+def get_claude_skills_dir() -> Path:
+    """~/.claude/skills/ のパスを取得"""
+    return Path.home() / ".claude" / "skills"
 
 
 def get_claude_settings_path() -> Path:
@@ -97,6 +109,25 @@ def sync_commands():
     source_dir = get_project_commands_dir()
     target_dir = get_claude_commands_dir()
     sync_markdown_files(source_dir, target_dir, "commands")
+
+
+def sync_skills():
+    """スキルディレクトリを同期"""
+    source_dir = get_project_skills_dir()
+    target_dir = get_claude_skills_dir()
+
+    if not source_dir.exists():
+        raise FileNotFoundError(f"{source_dir} が見つかりません")
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    for skill_dir in source_dir.iterdir():
+        if skill_dir.is_dir():
+            target_skill_dir = target_dir / skill_dir.name
+            if target_skill_dir.exists():
+                shutil.rmtree(target_skill_dir)
+            shutil.copytree(skill_dir, target_skill_dir)
+            print(f"{skill_dir.name}/ を同期しました")
 
 
 def load_json_file(file_path: Path) -> dict:
@@ -173,6 +204,7 @@ def main():
 
     sync_rules()
     sync_commands()
+    sync_skills()
     sync_settings()
 
     print("\n同期が完了しました")
