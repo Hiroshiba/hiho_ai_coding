@@ -5,18 +5,19 @@ description: Playwright E2E テストコードを生成。test.step で日本語
 
 # Playwright E2E テスト
 
-## 必須ルール
+## test.step 区切り
 
-1. **コメント禁止**: 論理的な区切りはすべて `test.step("日本語", async () => { ... })` で表現
-2. **日本語ステップ名**: 「何をして、何を確認するか」が分かる表現（体言止めより動作表現を優先）
-3. **適切な粒度**: ユーザー操作単位・UI 状態確認単位で区切る（入れ子も可）
-4. **expect は step 内に含める**
+- コメント禁止: 論理的な区切りはすべて `test.step("日本語", async () => { ... })` で表現
+- 日本語ステップ名: 「何をして、何を確認するか」が分かる表現。体言止めより動作表現を優先
+- 適切な粒度: ユーザー操作単位・UI 状態確認単位で区切る。入れ子も可
+- expect は step 内に含める
+- 既に step に分かれている関数は step の外で呼び出す
 
-## 記述例
-
-**Good:**
+Good:
 
 ```typescript
+await navigateToMain(page);
+
 await test.step("ダウンロードボタンをクリックしてモーダルを表示", async () => {
   await page.getByRole("button", { name: "ダウンロード" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
@@ -30,9 +31,10 @@ await test.step("モーダル内の規約リンクが正しいか確認", async 
 });
 ```
 
-**Bad:**
+Bad:
 
 ```typescript
+await navigateToMain(page);
 await page.getByRole("button", { name: "ダウンロード" }).click();
 await expect(page.getByRole("dialog")).toBeVisible();
 ```
@@ -43,7 +45,7 @@ await expect(page.getByRole("dialog")).toBeVisible();
 
 複数 step で使う locator は test 関数直下で宣言する。
 
-**Good:**
+Good:
 
 ```typescript
 test("テスト名", async ({ page }) => {
@@ -61,7 +63,7 @@ test("テスト名", async ({ page }) => {
 });
 ```
 
-**Bad:**
+Bad:
 
 ```typescript
 test("テスト名", async ({ page }) => {
