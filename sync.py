@@ -109,8 +109,25 @@ def save_json_file(file_path: Path, data: dict):
     file_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
 
-def merge_permissions(existing: dict, new: dict) -> dict:
-    """permissions をマージ"""
+def merge_env(existing_env: dict[str, str], new_env: dict[str, str]) -> dict[str, str]:
+    """env をマージ"""
+    overwritten_keys = {}
+    for key in existing_env:
+        if key in new_env and existing_env[key] != new_env[key]:
+            overwritten_keys[key] = (existing_env[key], new_env[key])
+
+    if overwritten_keys:
+        print("\n警告: settings.json の env に上書きされるキーが見つかりました:")
+        for key, (old_val, new_val) in sorted(overwritten_keys.items()):
+            print(f"  - {key}: '{old_val}' → '{new_val}'")
+
+    result = existing_env.copy()
+    result.update(new_env)
+    return result
+
+
+def merge_settings(existing: dict, new: dict) -> dict:
+    """settings.json をマージ"""
     existing_allow = set(existing.get("permissions", {}).get("allow", []))
     existing_deny = set(existing.get("permissions", {}).get("deny", []))
 
@@ -122,6 +139,11 @@ def merge_permissions(existing: dict, new: dict) -> dict:
 
     result = existing.copy()
     result["permissions"] = {"allow": merged_allow, "deny": merged_deny}
+
+    existing_env = existing.get("env", {})
+    new_env = new.get("env", {})
+    if new_env:
+        result["env"] = merge_env(existing_env, new_env)
 
     return result
 
@@ -138,7 +160,7 @@ def sync_settings():
     else:
         existing_settings = {}
 
-    merged_settings = merge_permissions(existing_settings, new_settings)
+    merged_settings = merge_settings(existing_settings, new_settings)
     save_json_file(claude_settings_path, merged_settings)
 
     print("settings.json を正常にマージしました")
