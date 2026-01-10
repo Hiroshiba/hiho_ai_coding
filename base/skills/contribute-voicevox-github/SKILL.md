@@ -1,5 +1,5 @@
 ---
-name: voicevox-github-contrib
+name: contribute-voicevox-github
 description: VOICEVOX Organization のリポジトリで Issue や PR を作成する。テンプレートの取得方法とフォーマットを案内。VOICEVOX への貢献時に使用。
 ---
 

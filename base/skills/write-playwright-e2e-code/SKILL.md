@@ -1,5 +1,5 @@
 ---
-name: wright-playwright-e2e-code
+name: write-playwright-e2e-code
 description: Playwright E2E テストコードを生成。test.step で日本語ステップ名を使用し、コメント禁止。E2E テスト作成・Playwright コード生成時に使用。
 ---
 
@@ -47,7 +47,7 @@ await expect(page.getByRole("dialog")).toBeVisible();
 locator の宣言場所は使用範囲で決める:
 
 - **複数 step で使う**: test 関数直下で宣言
-- **1つの step でのみ使う**: その step 内で宣言（外に出さない）
+- **1 つの step でのみ使う**: その step 内で宣言（外に出さない）
 
 Good:
 
