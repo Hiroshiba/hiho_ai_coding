@@ -1,6 +1,8 @@
 {
   "permissions": {
     "allow": [
+      "Skill(contribute-voicevox-github)",
+      "Skill(write-playwright-e2e-code)",
       "mcp__github__get_pull_request",
       "mcp__github__get_pull_request_files",
       "mcp__github__get_pull_request_comments",
