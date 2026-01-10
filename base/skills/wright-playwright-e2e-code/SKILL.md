@@ -7,7 +7,8 @@ description: Playwright E2E テストコードを生成。test.step で日本語
 
 ## test.step 区切り
 
-- コメント禁止: 論理的な区切りはすべて `test.step("日本語", async () => { ... })` で表現
+- What を説明するコメントは削除: 論理的な区切りは `test.step("日本語", async () => { ... })` で表現
+- Why（目的・意図・理由）を説明するコメントは残す
 - 日本語ステップ名: 「何をして、何を確認するか」が分かる表現。体言止めより動作表現を優先
 - 適切な粒度: ユーザー操作単位・UI 状態確認単位で区切る。入れ子も可
 - expect は step 内に含める
@@ -43,7 +44,10 @@ await expect(page.getByRole("dialog")).toBeVisible();
 
 ### locator・変数の共有
 
-複数 step で使う locator は test 関数直下で宣言し、1つの step でのみ使う locator は step 内で宣言する。
+locator の宣言場所は使用範囲で決める:
+
+- **複数 step で使う**: test 関数直下で宣言
+- **1つの step でのみ使う**: その step 内で宣言（外に出さない）
 
 Good:
 
