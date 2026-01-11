@@ -9,7 +9,7 @@ description: Playwright E2E テストコードを生成。test.step で日本語
 
 - What を説明するコメントは削除: 論理的な区切りは `test.step("日本語", async () => { ... })` で表現
 - Why（目的・意図・理由）を説明するコメントは残す
-- 日本語ステップ名: 操作内容や検証内容などの簡潔な「何をするか」が分かる表現。詳細な説明文にはせず、フローの節目を表す短い動詞句にする
+- 日本語ステップ名: 「何をするか」「どうあるべきか」が分かる表現。詳細な説明文にはせず、フローの節目を表す短い動詞句にする
 - 適切な粒度: ユーザー操作単位・UI 状態確認単位で区切る。入れ子も可
 - expect は step 内に含める
 - 既に step に分かれている関数は step の外で呼び出す
@@ -24,20 +24,25 @@ await test.step("ダウンロードモーダルを表示する", async () => {
   await expect(page.getByRole("dialog")).toBeVisible();
 });
 
-await test.step("規約リンク先を検証する", async () => {
-  await expect(page.getByRole("link", { name: "利用規約" })).toHaveAttribute(
-    "href",
-    "/term/",
-  );
+await test.step("モーダルを閉じると消える", async () => {
+  await page.getByRole("button", { name: "閉じる" }).click();
+  await expect(page.getByRole("dialog")).toBeHidden();
 });
 ```
 
-Bad:
+Bad 1 (コメントで説明):
 
 ```typescript
-await navigateToMain(page);
+// ダウンロードモーダルを表示する
 await page.getByRole("button", { name: "ダウンロード" }).click();
 await expect(page.getByRole("dialog")).toBeVisible();
+```
+
+Bad 2 (step 名が理想的でない):
+
+```typescript
+await test.step("ダウンロードモーダルを表示", async () => {}); // Bad: 体言止め
+await test.step("ダウンロードボタンをクリックしてモーダルが表示されることを確認する", async () => {}); // Bad: 長すぎ
 ```
 
 ## 共通化
