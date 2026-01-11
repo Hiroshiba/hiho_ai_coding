@@ -67,6 +67,7 @@ on:
 
 - `DANGEROUS_trigger_preview_pages.yml`
 - `merge_gatekeeper.yml`
+- `build_preview_pages.yml`
 
 ## 作業前の確認
 
