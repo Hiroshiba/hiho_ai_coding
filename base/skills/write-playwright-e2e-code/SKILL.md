@@ -19,12 +19,12 @@ Good:
 ```typescript
 await navigateToMain(page);
 
-await test.step("ダウンロードモーダルを表示", async () => {
+await test.step("ダウンロードモーダルを表示する", async () => {
   await page.getByRole("button", { name: "ダウンロード" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
 });
 
-await test.step("規約リンク先を検証", async () => {
+await test.step("規約リンク先を検証する", async () => {
   await expect(page.getByRole("link", { name: "利用規約" })).toHaveAttribute(
     "href",
     "/term/",
