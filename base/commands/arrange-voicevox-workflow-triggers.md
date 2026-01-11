@@ -63,11 +63,11 @@ on:
 
 ## 除外対象
 
-以下のファイルは VOICEVOX/preview-pages リポジトリ由来のため、変更しないこと:
+以下のファイルは VOICEVOX/preview-pages リポジトリや VOICEVOX/merge-gatekeeper リポジトリ由来のため、変更しないこと:
 
 - `DANGEROUS_trigger_preview_pages.yml`
-- `merge_gatekeeper.yml`
 - `build_preview_pages.yml`
+- `merge_gatekeeper.yml`
 
 ## 作業前の確認
 
