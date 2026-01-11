@@ -38,12 +38,22 @@ await page.getByRole("button", { name: "ダウンロード" }).click();
 await expect(page.getByRole("dialog")).toBeVisible();
 ```
 
-Bad 2 (step 名が理想的でない):
+Bad 2 (step 名が体言止め):
 
 ```typescript
-await test.step("ダウンロードモーダルを表示", async () => {}); // Bad: 体言止め
-await test.step("ダウンロードボタンをクリックしてモーダルが表示されることを確認する", async () => {}); // Bad: 長すぎ
-await test.step("モーダルを閉じると消えることを確認する", async () => {}); // Bad: 冗長
+await test.step("ダウンロードモーダルを表示", async () => {});
+```
+
+Bad 3 (step 名が冗長):
+
+```typescript
+await test.step("ダウンロードボタンをクリックしてモーダルが表示されることを確認する", async () => {});
+```
+
+Bad 4 (step 名に「～を確認する」を含む):
+
+```typescript
+await test.step("モーダルを閉じると消えることを確認する", async () => {});
 ```
 
 ## 共通化
