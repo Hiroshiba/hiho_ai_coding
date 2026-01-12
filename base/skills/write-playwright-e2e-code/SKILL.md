@@ -35,6 +35,12 @@ await test.step("モーダルを閉じると消える", async () => {
 - 「～を確認する」など冗長な表現は避ける
 - 体言止めは使わない
 
+Good:
+
+```typescript
+await test.step("ダウンロードモーダルを表示する", async () => {});
+```
+
 Bad 1 (step 名が体言止め):
 
 ```typescript
@@ -64,9 +70,7 @@ Good (意図を説明):
 await page.waitForTimeout(5000); // エンジン読み込みを待機
 ```
 
-## 共通化
-
-### locator・変数の共有
+## locator・変数の共有
 
 locator の宣言場所は使用範囲で決める:
 
@@ -79,14 +83,12 @@ Good:
 test("テスト名", async ({ page }) => {
   const input = page.getByLabel("入力欄");
 
-  await test.step("入力", async () => {
+  await test.step("入力する", async () => {
     await input.fill("テスト");
   });
 
-  await test.step("検証", async () => {
-    const accentPhrase = page.locator(".accent-phrase");
+  await test.step("入力値が反映される", async () => {
     await expect(input).toHaveValue("テスト");
-    await expect(accentPhrase).toBeVisible();
   });
 });
 ```
@@ -97,7 +99,7 @@ Bad 1 (不要な外部宣言):
 test("テスト名", async ({ page }) => {
   const accentPhrase = page.locator(".accent-phrase");
 
-  await test.step("検証", async () => {
+  await test.step("検証する", async () => {
     await expect(accentPhrase).toBeVisible();
   });
 });
@@ -107,19 +109,68 @@ Bad 2 (重複宣言):
 
 ```typescript
 test("テスト名", async ({ page }) => {
-  await test.step("入力", async () => {
+  await test.step("入力する", async () => {
     const input = page.getByLabel("入力欄");
     await input.fill("テスト");
   });
 
-  await test.step("検証", async () => {
+  await test.step("検証する", async () => {
     const input = page.getByLabel("入力欄");
     await expect(input).toHaveValue("テスト");
   });
 });
 ```
 
-### ロジックの共通化
+## step 間の値の受け渡し
+
+- **再代入しない**: step から return して const で受け取る
+- **再代入する**: let で宣言して step 内で代入
+
+Good 1:
+
+```typescript
+const before = await test.step("初期値を取得する", async () => {
+  return await getValue(page);
+});
+
+await test.step("値が変化している", async () => {
+  expect(await getValue(page)).not.toEqual(before);
+});
+```
+
+Bad 1 (再代入しないのに let で宣言):
+
+```typescript
+let before: number;
+
+await test.step("初期値を取得する", async () => {
+  before = await getValue(page);
+});
+
+await test.step("値が変化している", async () => {
+  expect(await getValue(page)).not.toEqual(before);
+});
+```
+
+Good 2 (再代入する場合は let でも OK):
+
+```typescript
+let count: number;
+
+await test.step("1回目の操作をする", async () => {
+  await page.getByRole("button").click();
+  count = await getCount(page);
+  expect(count).toBe(1);
+});
+
+await test.step("2回目の操作をする", async () => {
+  await page.getByRole("button").click();
+  count = await getCount(page);
+  expect(count).toBe(2);
+});
+```
+
+## ロジックの共通化
 
 | スコープ              | 方法                                  |
 | --------------------- | ------------------------------------- |
