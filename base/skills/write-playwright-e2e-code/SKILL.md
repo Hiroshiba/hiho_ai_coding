@@ -7,9 +7,7 @@ description: Playwright E2E テストコードを生成。test.step で日本語
 
 ## test.step 区切り
 
-- What を説明するコメントは削除: 論理的な区切りは `test.step("日本語", async () => { ... })` で表現
-- Why（目的・意図・理由）を説明するコメントは残す
-- 日本語ステップ名: 「何をするか」「どうあるべきか」が分かる表現。詳細な説明文にはせず、フローの節目を表す短い動詞句にする。「～を確認する」など冗長な表現は避ける
+- 論理的な区切りは `test.step("日本語", async () => { ... })` で表現
 - 適切な粒度: ユーザー操作単位・UI 状態確認単位で区切る。入れ子も可
 - expect は step 内に含める
 - 既に step に分かれている関数は step の外で呼び出す
@@ -30,30 +28,40 @@ await test.step("モーダルを閉じると消える", async () => {
 });
 ```
 
-Bad 1 (コメントで説明):
+## step 名
 
-```typescript
-// ダウンロードモーダルを表示する
-await page.getByRole("button", { name: "ダウンロード" }).click();
-await expect(page.getByRole("dialog")).toBeVisible();
-```
+- 「何をするか」「どうあるべきか」が分かる表現にする
+- 詳細な説明文にはせず、フローの節目を表す短い動詞句にする
+- 「～を確認する」など冗長な表現は避ける
+- 体言止めは使わない
 
-Bad 2 (step 名が体言止め):
+Bad 1 (step 名が体言止め):
 
 ```typescript
 await test.step("ダウンロードモーダルを表示", async () => {});
 ```
 
-Bad 3 (step 名が冗長):
+Bad 2 (step 名が冗長):
 
 ```typescript
 await test.step("ダウンロードボタンをクリックしてモーダルが表示されることを確認する", async () => {});
 ```
 
-Bad 4 (step 名に「～を確認する」を含む):
+Bad 3 (step 名に「～を確認する」を含む):
 
 ```typescript
 await test.step("モーダルを閉じると消えることを確認する", async () => {});
+```
+
+## コメント
+
+- **What を説明するコメントは削除**: step 名で表現する
+- **Why（目的・意図・理由）を説明するコメントは残す**: なぜその待機時間が必要か、なぜその順序で実行するか等
+
+Good (意図を説明):
+
+```typescript
+await page.waitForTimeout(5000); // エンジン読み込みを待機
 ```
 
 ## 共通化
