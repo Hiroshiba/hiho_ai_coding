@@ -16,3 +16,43 @@ https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
 を読んでください。
 
 おかしな点があればユーザーに報告してください。
+
+## Good/Bad 例の構成
+
+- Good を先に示し、それに対する Bad を後に配置する
+- Good と Bad の対応が複数ある場合は交互に出す
+- Bad が複数ある場合は着眼点を書く
+
+Good 1:
+
+```markdown
+Good:
+Bad 1 (any を使う):
+Bad 2 (型定義が不十分):
+```
+
+Bad 1 (着眼点がない):
+
+```markdown
+Good:
+Bad 1:
+Bad 2:
+```
+
+Good 2:
+
+```markdown
+Good 1:
+Bad 1-1 (any を使う):
+Bad 1-2 (型定義が不十分):
+Good 2:
+```
+
+Bad 2 (Good と Bad の順番がおかしい):
+
+```markdown
+Good 1:
+Good 2:
+Bad 1-1 (any を使う):
+Bad 1-2 (型定義が不十分):
+```
