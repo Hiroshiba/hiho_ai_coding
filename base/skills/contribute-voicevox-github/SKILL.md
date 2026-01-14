@@ -52,6 +52,20 @@ gh api repos/VOICEVOX/{repo}/contents/.github/PULL_REQUEST_TEMPLATE.md --jq '.co
 gh api repos/VOICEVOX/.github/contents/.github/PULL_REQUEST_TEMPLATE.md --jq '.content' | base64 -d
 ```
 
-## 注意事項
+## PR 作成
 
-- `{repo}` は対象リポジトリ名に置き換える（例: `voicevox`, `voicevox_core`, `voicevox_engine`）
+### ブランチ
+
+VOICEVOX Organization のデフォルトブランチから新規作成する。現在のブランチから続ける方が適切な場合はそのまま進める。
+
+### 説明文
+
+**端的に書く**: 1-2 行で済むなら短く。文脈が複雑な場合のみ詳細に説明。
+
+**リンク必須**:
+
+- 関連 Issue
+- 起点となったコメント
+- 関連 PR スレッド
+
+**方針が不明な場合は Ask**: 文章内容・分量・含めるべき項目が判断できない場合のみ確認する。「念のため」の確認は不要。

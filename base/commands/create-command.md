@@ -6,11 +6,13 @@ disable-model-invocation: true
 Claude Code Commands を作成してください。
 Command は `~/Github/hiho_ai_coding/base/commands/` 以下に配置します。
 
-ユーザーから指示があった場合は、内容に合わせて該当する Command を作成してください。
+## 手順
+
+1. 仕様の確認: 以下の URL を Fetch して Command の仕様と best practice を把握する
+   - https://platform.claude.com/docs/en/agent-sdk/slash-commands
+   - https://code.claude.com/docs/en/slash-commands
+2. 要件の整理: ユーザーの指示から作成する Command の要件を整理する
+3. 作成の実施: 仕様と best practice に基づいて作成する
+
 作成対象の Command や作成方針がわからない場合はユーザーに Ask してください。
-
-Command の仕様や best practice は以下に書いています。必ず Fetch して読んでください。
-https://platform.claude.com/docs/en/agent-sdk/slash-commands
-https://code.claude.com/docs/en/slash-commands
-
 おかしな点があればユーザーに報告してください。

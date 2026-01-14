@@ -6,13 +6,15 @@ disable-model-invocation: true
 Claude Code Skills を作成してください。
 Skill は `~/Github/hiho_ai_coding/base/skills/` 以下に配置します。
 
-ユーザーから指示があった場合は、内容に合わせて該当する Skill を作成してください。
+## 手順
+
+1. 仕様の確認: 以下の URL を Fetch して Skill の仕様と best practice を把握する
+   - https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
+   - https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+2. 要件の整理: ユーザーの指示から作成する Skill の要件を整理する
+3. 作成の実施: 仕様と best practice に基づいて作成する
+
 作成対象の Skill や作成方針がわからない場合はユーザーに Ask してください。
-
-Skill の仕様や best practice は以下に書いています。必ず Fetch して読んでください。
-https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
-https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-
 おかしな点があればユーザーに報告してください。
 
 ## Good/Bad 例の構成
