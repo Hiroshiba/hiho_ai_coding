@@ -150,7 +150,9 @@
       "WebFetch(domain:www.lawinsider.com)",
       "WebFetch(domain:www.interaction-design.org)",
       "Bash(wc:*)",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "Bash(python -m json.tool)",
+      "WebFetch(domain:dmv.nico)"
     ],
     "deny": [
       "WebFetch(domain:github.com)",
