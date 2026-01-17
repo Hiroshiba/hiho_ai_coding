@@ -72,6 +72,7 @@
       "WebFetch(domain:k-hyoda.hatenablog.com)",
       "WebFetch(domain:arxiv.org)",
       "WebFetch(domain:docs.marimo.io)",
+      "WebFetch(domain:quasar.dev)",
       "WebSearch",
       "Bash(echo:*)",
       "Bash(ls:*)",
