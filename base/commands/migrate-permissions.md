@@ -1,6 +1,7 @@
 ---
 description: ローカルパーミッションを base に移行する
 disable-model-invocation: true
+allowed-tools: Edit(~/Github/hiho_ai_coding/base/settings.json), Edit(**/.claude/settings.local.json)
 ---
 
 `.claude/settings.local.json` のパーミッションを `~/Github/hiho_ai_coding/base/settings.json` に移行してください。
@@ -33,7 +34,7 @@ disable-model-invocation: true
 - **WebFetch**: ドキュメントサイト等は汎用。ただしプロジェクト固有のドメインは除く
 - **WebSearch**: 汎用
 - **Bash read-only コマンド**: wc, tree, jq, ls, find, grep, rg, cat, head, tail, file, stat 等
-- **mcp__github__ 系の read 操作**: get_*, list_*, search_* 等
+- **mcp**github** 系の read 操作**: get*\*, list*_, search\__ 等
 
 ### リポジトリ固有の可能性が高い（探索で判定）
 
