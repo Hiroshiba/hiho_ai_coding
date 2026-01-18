@@ -52,6 +52,40 @@ gh api repos/VOICEVOX/{repo}/contents/.github/PULL_REQUEST_TEMPLATE.md --jq '.co
 gh api repos/VOICEVOX/.github/contents/.github/PULL_REQUEST_TEMPLATE.md --jq '.content' | base64 -d
 ```
 
+## 文章の書き方
+
+### 文体の把握
+
+Issue や PR を作成する前に、依頼者の過去の Issue や PR を確認して文体を把握する。
+
+```bash
+# 依頼者の Issue を確認
+gh issue list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
+
+# 依頼者の PR を確認
+gh pr list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
+```
+
+### 体言止めを避ける
+
+本文は体言止めを使わず、文章として完結させる。箇条書き（Pros/Cons 等）は体言止めで問題ない。
+
+Good:
+
+```markdown
+ブランチ制限がなく、フォークリポジトリで全ブランチに対してワークフローが実行されてしまいます。
+```
+
+Bad (本文が体言止め):
+
+```markdown
+ブランチ制限がなく、フォークリポジトリで全ブランチに対してワークフローが実行される状態。
+```
+
+## Issue 作成
+
+テンプレートに従い、依頼者の文体に合わせて作成する。
+
 ## PR 作成
 
 ### ブランチ
@@ -59,6 +93,8 @@ gh api repos/VOICEVOX/.github/contents/.github/PULL_REQUEST_TEMPLATE.md --jq '.c
 VOICEVOX Organization のデフォルトブランチから新規作成する。現在のブランチから続ける方が適切な場合はそのまま進める。
 
 ### 説明文
+
+テンプレートに従い、依頼者の文体に合わせて作成する。
 
 **端的に書く**: 1-2 行で済むなら短く。文脈が複雑な場合のみ詳細に説明。
 
