@@ -176,7 +176,9 @@
       "Bash(docker exec:*)",
       "Bash(docker stop:*)",
       "Bash(docker rm:*)",
-      "Bash(docker rmi:*)"
+      "Bash(docker rmi:*)",
+      "Bash(soxi:*)",
+      "Bash(git ls-files:*)"
     ],
     "deny": [
       "WebFetch(domain:github.com)",
