@@ -1,6 +1,6 @@
 ---
 name: contribute-voicevox-github
-description: VOICEVOX Organization のリポジトリで Issue や PR を作成する。テンプレートの取得方法とフォーマットを案内。VOICEVOX への貢献時に使用。
+description: VOICEVOX Organization のリポジトリで Issue や PR を作成する。テンプレートの取得方法とフォーマットがある。VOICEVOX への貢献時に使う。
 ---
 
 # VOICEVOX GitHub 貢献
@@ -66,9 +66,9 @@ gh issue list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
 gh pr list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
 ```
 
-### 体言止めを避ける
+### 体言止め禁止
 
-本文は体言止めを使わず、文章として完結させる。箇条書き（Pros/Cons 等）は体言止めで問題ない。
+本文は体言止めを使わず、文章として完結させる。箇条書き（Pros/Cons 等）だけは体言止めでも問題ない。
 
 Good:
 
@@ -96,7 +96,7 @@ VOICEVOX Organization のデフォルトブランチから新規作成する。�
 
 テンプレートに従い、依頼者の文体に合わせて作成する。
 
-**端的に書く**: 1-2 行で済むなら短く。文脈が複雑な場合のみ詳細に説明。
+**端的に書く**: 1-2 行で済むなら短く。文脈が複雑な場合のみ詳細に説明する。
 
 **リンク必須**:
 
@@ -104,4 +104,4 @@ VOICEVOX Organization のデフォルトブランチから新規作成する。�
 - 起点となったコメント
 - 関連 PR スレッド
 
-**方針が不明な場合は Ask**: 文章内容・分量・含めるべき項目が判断できない場合のみ確認する。「念のため」の確認は不要。
+**方針が不明な場合は Ask**: 文章内容・分量・含めるべき項目が判断できない場合のみ確認する。「念のため」の確認はしない。
