@@ -4,7 +4,11 @@ disable-model-invocation: true
 ---
 
 Claude Code Skills を修正してください。
-Skill は `~/Github/hiho_ai_coding/base/skills/*/SKILL.md` 以下にあります。
+
+## 対象の配置場所
+
+- **デフォルト**: `~/Github/hiho_ai_coding/base/skills/*/SKILL.md`
+- **ローカル環境**: ユーザーが「ローカル環境」「この環境の」「このリポジトリの」などと指示した場合は、現在の作業ディレクトリの `.claude/skills/*/SKILL.md` を対象とする
 
 ## 手順
 

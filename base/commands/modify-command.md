@@ -4,7 +4,11 @@ disable-model-invocation: true
 ---
 
 Claude Code Commands を修正してください。
-Command は `~/Github/hiho_ai_coding/base/commands/` 以下にあります。
+
+## 対象の配置場所
+
+- **デフォルト**: `~/Github/hiho_ai_coding/base/commands/`
+- **ローカル環境**: ユーザーが「ローカル環境」「この環境の」「このリポジトリの」などと指示した場合は、現在の作業ディレクトリの `.claude/commands/` 以下を対象とする
 
 ## 手順
 
