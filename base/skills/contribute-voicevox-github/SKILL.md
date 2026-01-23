@@ -7,64 +7,29 @@ description: VOICEVOX Organization のリポジトリで Issue や PR を作成�
 
 VOICEVOX Organization のリポジトリに Issue や PR を作成する際のガイド。
 
-## テンプレートの優先順位
-
-1. **対象リポジトリの `.github/` を先に確認**
-2. なければ **VOICEVOX/.github リポジトリ**を参照
-
-一部のリポジトリ（voicevox_core 等）は専用テンプレートを持つ。
-
 ## テンプレートの取得
 
-### Issue テンプレート確認
+### Issue テンプレート
+
+一覧表示:
 
 ```bash
-# 1. 対象リポジトリを確認
-gh api repos/VOICEVOX/{repo}/.github/ISSUE_TEMPLATE --jq '.[].name' 2>/dev/null
-
-# 2. なければグローバルを確認
-gh api repos/VOICEVOX/.github/contents/.github/ISSUE_TEMPLATE --jq '.[].name'
+hiho_get_github_template issue -o VOICEVOX -r {repo}
 ```
 
-### Issue テンプレート取得
+取得:
 
 ```bash
-# 対象リポジトリから取得（存在する場合）
-gh api repos/VOICEVOX/{repo}/contents/.github/ISSUE_TEMPLATE/{template}.md --jq '.content' | base64 -d
-
-# グローバルから取得
-gh api repos/VOICEVOX/.github/contents/.github/ISSUE_TEMPLATE/{template}.md --jq '.content' | base64 -d
+hiho_get_github_template issue -o VOICEVOX -r {repo} -t {template}
 ```
 
-利用可能なテンプレート名:
-
-- `bugreport.md` - バグ報告
-- `featurerequest.md` - 機能リクエスト
-- `question.md` - 質問
-
-### PR テンプレート確認・取得
+### PR テンプレート
 
 ```bash
-# 1. 対象リポジトリを確認
-gh api repos/VOICEVOX/{repo}/contents/.github/PULL_REQUEST_TEMPLATE.md --jq '.content' 2>/dev/null | base64 -d
-
-# 2. なければグローバルを確認
-gh api repos/VOICEVOX/.github/contents/.github/PULL_REQUEST_TEMPLATE.md --jq '.content' | base64 -d
+hiho_get_github_template pr -o VOICEVOX -r {repo}
 ```
 
 ## 文章の書き方
-
-### 文体の把握
-
-Issue や PR を作成する前に、依頼者の過去の Issue や PR を確認して文体を把握する。
-
-```bash
-# 依頼者の Issue を確認
-gh issue list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
-
-# 依頼者の PR を確認
-gh pr list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
-```
 
 ### 体言止め禁止
 
@@ -80,6 +45,18 @@ Bad (本文が体言止め):
 
 ```markdown
 ブランチ制限がなく、フォークリポジトリで全ブランチに対してワークフローが実行される状態。
+```
+
+### 文体の把握
+
+Issue や PR を作成する前に、依頼者の過去の Issue や PR を確認して文体を把握する。
+
+```bash
+# 依頼者の Issue を確認
+gh issue list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
+
+# 依頼者の PR を確認
+gh pr list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
 ```
 
 ## Issue 作成
