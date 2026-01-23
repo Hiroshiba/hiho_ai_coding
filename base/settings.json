@@ -182,7 +182,10 @@
       "Bash(docker rm:*)",
       "Bash(docker rmi:*)",
       "Bash(soxi:*)",
-      "Bash(git ls-files:*)"
+      "Bash(git ls-files:*)",
+      "Bash(gh search:*)",
+      "Bash(git merge-base:*)",
+      "Bash(hiho_get_github_template:*)"
     ],
     "deny": [
       "WebFetch(domain:github.com)",
