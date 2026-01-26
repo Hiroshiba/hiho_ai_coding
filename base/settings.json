@@ -192,7 +192,16 @@
       "Bash(pnpm view:*)",
       "Bash(head:*)",
       "Bash(gh api user:*)",
-      "Bash(identify:*)"
+      "Bash(identify:*)",
+      "Bash(pnpm run build)",
+      "Bash(pnpm install:*)",
+      "Bash(xargs cat:*)",
+      "mcp__playwright__browser_console_messages",
+      "Bash(pnpm run test-build:*)",
+      "Bash(pnpm run test:e2e:*)",
+      "Bash(pnpm dev:*)",
+      "mcp__playwright__browser_run_code",
+      "mcp__playwright__browser_install"
     ],
     "deny": [
       "WebFetch(domain:github.com)",
