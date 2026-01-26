@@ -190,7 +190,9 @@
       "Bash(pnpm list:*)",
       "Bash(pnpm why:*)",
       "Bash(pnpm view:*)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(gh api user:*)",
+      "Bash(identify:*)"
     ],
     "deny": [
       "WebFetch(domain:github.com)",

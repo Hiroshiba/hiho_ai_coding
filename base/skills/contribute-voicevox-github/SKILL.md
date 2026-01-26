@@ -52,6 +52,9 @@ Bad (本文が体言止め):
 Issue や PR を作成する前に、依頼者の過去の Issue や PR を確認して文体を把握する。
 
 ```bash
+# 依頼者の username を取得
+gh api user --jq '.login'
+
 # 依頼者の Issue を確認
 gh issue list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
 
