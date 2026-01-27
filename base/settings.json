@@ -208,7 +208,9 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "NotebookEdit",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git add -A)",
+      "Bash(git add .)"
     ]
   },
   "env": {
