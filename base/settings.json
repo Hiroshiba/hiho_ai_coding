@@ -156,6 +156,8 @@
       "Bash(wc:*)",
       "Bash(jq:*)",
       "Bash(python -m json.tool)",
+      "Bash(python -m py_compile:*)",
+      "Bash(python3 -m py_compile:*)",
       "WebFetch(domain:dmv.nico)",
       "Bash(git rev-parse:*)",
       "Bash(docker --version:*)",
