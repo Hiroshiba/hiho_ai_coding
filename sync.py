@@ -60,7 +60,7 @@ def sync_git_main():
             check=True,
         )
 
-        print(f"main ブランチを origin/main に追従させました")
+        print("main ブランチを origin/main に追従させました")
 
     except subprocess.CalledProcessError as e:
         if current_branch != "main":
