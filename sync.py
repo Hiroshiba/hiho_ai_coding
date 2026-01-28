@@ -1,6 +1,7 @@
 """Claude Code 設定同期スクリプト
 
 このスクリプトは以下の同期処理を実行します:
+- Git: main ブランチを origin/main に追従
 - base/rules/*.md → ~/.claude/rules/
 - base/commands/*.md → ~/.claude/commands/
 - base/skills/*.md → ~/.claude/skills/
@@ -8,7 +9,81 @@
 """
 import json
 import shutil
+import subprocess
 from pathlib import Path
+
+
+def get_project_root() -> Path:
+    """プロジェクトルートディレクトリのパスを取得"""
+    return Path(__file__).resolve().parent
+
+
+def get_current_branch() -> str:
+    """現在の Git ブランチ名を取得"""
+    result = subprocess.run(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        cwd=get_project_root(),
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return result.stdout.strip()
+
+
+def sync_git_main():
+    """main ブランチを origin/main に追従"""
+    project_root = get_project_root()
+    current_branch = get_current_branch()
+
+    print("Git 同期を開始します...")
+    print(f"現在のブランチ: {current_branch}")
+
+    try:
+        print("\norigin/main を fetch しています...")
+        subprocess.run(
+            ["git", "fetch", "origin", "main"],
+            cwd=project_root,
+            check=True,
+        )
+
+        print("main ブランチに切り替えています...")
+        subprocess.run(
+            ["git", "checkout", "main"],
+            cwd=project_root,
+            check=True,
+        )
+
+        print("origin/main に追従しています...")
+        subprocess.run(
+            ["git", "merge", "--ff-only", "origin/main"],
+            cwd=project_root,
+            check=True,
+        )
+
+        print(f"main ブランチを origin/main に追従させました")
+
+    except subprocess.CalledProcessError as e:
+        if current_branch != "main":
+            print(f"\nエラーが発生したため、{current_branch} ブランチに戻します...")
+            subprocess.run(
+                ["git", "checkout", current_branch],
+                cwd=project_root,
+                check=False,
+            )
+        raise RuntimeError(
+            f"Git 同期に失敗しました。\n"
+            f"コマンドが失敗しました: {e.cmd}\n"
+            f"手動で確認してください。"
+        )
+
+    finally:
+        if current_branch != "main":
+            print(f"\n{current_branch} ブランチに戻しています...")
+            subprocess.run(
+                ["git", "checkout", current_branch],
+                cwd=project_root,
+                check=True,
+            )
 
 
 def get_project_rules_dir() -> Path:
@@ -199,15 +274,18 @@ def sync_settings():
 
 def main():
     """Claude Code 設定を同期"""
+    sync_git_main()
+
     claude_dir = Path.home() / ".claude"
     check_claude_installed(claude_dir)
 
+    print("\n設定ファイルの同期を開始します...")
     sync_rules()
     sync_commands()
     sync_skills()
     sync_settings()
 
-    print("\n同期が完了しました")
+    print("\n全ての同期が完了しました")
 
 
 if __name__ == "__main__":
