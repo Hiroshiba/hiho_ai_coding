@@ -107,7 +107,6 @@
       "Bash(uv run:*)",
       "Bash(uv list:*)",
       "Bash(node --version:*)",
-      "Bash(npm view:*)",
       "Bash(pnpm i)",
       "Bash(pnpm add:*)",
       "Bash(pnpm update:*)",
@@ -212,7 +211,8 @@
       "NotebookEdit",
       "WebSearch",
       "Bash(git add -A)",
-      "Bash(git add .)"
+      "Bash(git add .)",
+      "Bash(npm:*)"
     ]
   },
   "env": {
