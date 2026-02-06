@@ -1,15 +1,4 @@
 {
-  "PreToolUse": [
-    {
-      "matcher": "mcp__playwright__browser_take_screenshot",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash ~/.claude/hooks/validate_screenshot_path.sh"
-        }
-      ]
-    }
-  ],
   "permissions": {
     "allow": [
       "Skill(contribute-voicevox-github)",

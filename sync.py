@@ -6,8 +6,7 @@
 - base/commands/*.md → ~/.claude/commands/
 - base/skills/ → ~/.claude/skills/
 - base/agents/*.md → ~/.claude/agents/
-- base/hooks/ → ~/.claude/hooks/
-- base/settings.json を ~/.claude/settings.json にマージ（hooks含む）
+- base/settings.json を ~/.claude/settings.json にマージ
 """
 import json
 import shutil
@@ -112,12 +111,6 @@ def get_project_agents_dir() -> Path:
     return script_path.parent / "base" / "agents"
 
 
-def get_project_hooks_dir() -> Path:
-    """プロジェクトの base/hooks/ のパスを取得"""
-    script_path = Path(__file__).resolve()
-    return script_path.parent / "base" / "hooks"
-
-
 def get_project_settings_path() -> Path:
     """プロジェクトの base/settings.json のパスを取得"""
     script_path = Path(__file__).resolve()
@@ -142,11 +135,6 @@ def get_claude_skills_dir() -> Path:
 def get_claude_agents_dir() -> Path:
     """~/.claude/agents/ のパスを取得"""
     return Path.home() / ".claude" / "agents"
-
-
-def get_claude_hooks_dir() -> Path:
-    """~/.claude/hooks/ のパスを取得"""
-    return Path.home() / ".claude" / "hooks"
 
 
 def get_claude_settings_path() -> Path:
@@ -236,26 +224,6 @@ def sync_agents():
     sync_markdown_files(source_dir, target_dir, "agents")
 
 
-def sync_hooks():
-    """フックスクリプトを同期"""
-    source_dir = get_project_hooks_dir()
-    target_dir = get_claude_hooks_dir()
-
-    if not source_dir.exists():
-        print("base/hooks/ が見つかりません。スキップします。")
-        return
-
-    target_dir.mkdir(parents=True, exist_ok=True)
-
-    for file_path in source_dir.iterdir():
-        if file_path.is_file():
-            target_file = target_dir / file_path.name
-            shutil.copy2(file_path, target_file)
-            if file_path.suffix == ".sh":
-                target_file.chmod(0o755)
-            print(f"{file_path.name} を同期しました")
-
-
 def load_json_file(file_path: Path) -> dict:
     """JSON ファイルを読み込む"""
     return json.loads(file_path.read_text())
@@ -302,24 +270,6 @@ def merge_settings(existing: dict, new: dict) -> dict:
     if new_env:
         result["env"] = merge_env(existing_env, new_env)
 
-    for hook_type in ["PreToolUse", "Stop", "SessionStart", "SessionEnd"]:
-        if hook_type in new:
-            existing_hooks = existing.get(hook_type, [])
-            new_hooks = new.get(hook_type, [])
-
-            existing_hooks_set = {json.dumps(h, sort_keys=True) for h in existing_hooks}
-            unique_new_hooks = [
-                h for h in new_hooks
-                if json.dumps(h, sort_keys=True) not in existing_hooks_set
-            ]
-
-            result[hook_type] = existing_hooks + unique_new_hooks
-
-            if unique_new_hooks:
-                print(f"{hook_type} フックを追加しました（{len(unique_new_hooks)}個）")
-            if len(unique_new_hooks) < len(new_hooks):
-                print(f"  注意: {len(new_hooks) - len(unique_new_hooks)}個の重複フックをスキップしました")
-
     return result
 
 
@@ -353,7 +303,6 @@ def main():
     sync_commands()
     sync_skills()
     sync_agents()
-    sync_hooks()
     sync_settings()
 
     print("\n全ての同期が完了しました")
