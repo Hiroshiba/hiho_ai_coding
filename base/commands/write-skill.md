@@ -1,26 +1,26 @@
 ---
-description: Skill を修正する
+description: Skill を作成・修正する
 disable-model-invocation: true
 ---
 
-Claude Code Skills を修正してください。
+Claude Code Skills を作成・修正してください。
 
-## 対象の配置場所
+## 配置先
 
-- **デフォルト**: `~/Github/hiho_ai_coding/base/skills/*/SKILL.md`
-- **ローカル環境**: ユーザーが「ローカル環境」「この環境の」「このリポジトリの」などと指示した場合は、現在の作業ディレクトリの `.claude/skills/*/SKILL.md` を対象とする
+- **デフォルト**: `~/Github/hiho_ai_coding/base/skills/`
+- **ローカル環境**: ユーザーが「ローカル環境」「この環境に」「この環境の」「このリポジトリに」「このリポジトリの」などと指示した場合は、現在の作業ディレクトリの `.claude/skills/` 以下を対象とする
 
 ## 手順
 
 1. 仕様の確認: 以下の URL を Fetch して Skill の仕様と best practice を把握する
    - https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
    - https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-2. 対象 Skill の特定: ユーザーの指示から修正対象の Skill を特定する
-3. 現状の確認: 対象 Skill を Read して現在の内容を把握する
-4. 修正の実施: 仕様と best practice に基づいて修正する
+2. 対象の特定: ユーザーの指示から対象の Skill を特定し、既存の場合は Read して現状を把握する
+3. 要件の整理: ユーザーの指示から Skill の要件を整理する
+4. 作成・修正の実施: 仕様と best practice に基づいて作成・修正する
 
 ユーザーの意図がわからない場合は、`git status`や`git diff`を使って変更内容を確認して推測してください。
-修正対象の Skill や修正方針がわからない場合はユーザーに Ask してください。
+対象の Skill や方針がわからない場合はユーザーに Ask してください。
 おかしな点があればユーザーに報告してください。
 
 ## Good/Bad 例の構成

@@ -1,26 +1,26 @@
 ---
-description: Agent を修正する
+description: Agent を作成・修正する
 disable-model-invocation: true
 ---
 
-Claude Code Agents を修正してください。
+Claude Code Agents を作成・修正してください。
 
-## 対象の配置場所
+## 配置先
 
 - **デフォルト**: 現在のディレクトリの agent configuration JSON
-- **ローカル環境**: ユーザーが「ローカル環境」「この環境の」「このリポジトリの」などと指示した場合は、現在の作業ディレクトリを対象とする
+- **ローカル環境**: ユーザーが「ローカル環境」「この環境に」「この環境の」「このリポジトリに」「このリポジトリの」などと指示した場合は、現在の作業ディレクトリを対象とする
 
 ## 手順
 
 1. 仕様の確認: Context7 で Agent のベストプラクティスを調査
-   - mcp\_\_context7\_\_resolve-library-id で "claude code" を検索
-   - mcp\_\_context7\_\_query-docs で agent 最適化方法を取得
-2. 対象 Agent の特定: ユーザーの指示から修正対象の Agent を特定
-3. 現状の確認: 対象 Agent configuration を Read して現在の内容を把握
-4. 修正の実施: ベストプラクティスに基づいて修正
+   - mcp__context7__resolve-library-id で "claude code" を検索
+   - mcp__context7__query-docs で agent 作成・修正方法を取得
+2. 対象の特定: ユーザーの指示から対象の Agent を特定し、既存の場合は Read して現状を把握する
+3. 要件の整理: ユーザーの指示から Agent の要件を整理する
+4. 作成・修正の実施: ベストプラクティスに基づいて作成・修正する
 
 ユーザーの意図がわからない場合は、`git status`や`git diff`を使って変更内容を確認して推測してください。
-修正対象の Agent や修正方針がわからない場合はユーザーに Ask してください。
+対象の Agent や方針がわからない場合はユーザーに Ask してください。
 おかしな点があればユーザーに報告してください。
 
 ## Agent Configuration の構造
