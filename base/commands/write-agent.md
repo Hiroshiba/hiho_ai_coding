@@ -12,9 +12,7 @@ Claude Code Agents を作成・修正してください。
 
 ## 手順
 
-1. 仕様の確認: Context7 で Agent のベストプラクティスを調査
-   - mcp__context7__resolve-library-id で "claude code" を検索
-   - mcp__context7__query-docs で agent 作成・修正方法を取得
+1. 仕様の確認: Context7 で Claude Code の Agent に関するドキュメントを取得する
 2. 対象の特定: ユーザーの指示から対象の Agent を特定し、既存の場合は Read して現状を把握する
 3. 要件の整理: ユーザーの指示から Agent の要件を整理する
 4. 作成・修正の実施: ベストプラクティスに基づいて作成・修正する
@@ -22,6 +20,10 @@ Claude Code Agents を作成・修正してください。
 ユーザーの意図がわからない場合は、`git status`や`git diff`を使って変更内容を確認して推測してください。
 対象の Agent や方針がわからない場合はユーザーに Ask してください。
 おかしな点があればユーザーに報告してください。
+
+## 原則
+
+作成・修正する内容には、AI エージェントが既に知っていることを書かないでください。コンテキストウィンドウは共有リソースなので、AI が持っていない情報だけを含めてください。
 
 ## Agent Configuration の構造
 
