@@ -1,7 +1,5 @@
 ---
-paths:
-  - "**/*.ts"
-  - "**/*.tsx"
+paths: "**/*.{ts,tsx}"
 ---
 
 ## TypeScript のコーディング規約

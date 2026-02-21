@@ -32,3 +32,21 @@ Claude Code Rules や CLAUDE.md を作成・修正してください。
 - 1 ファイル 1 関心事で分割する（例: `python.md`, `html.md`, `programming.md`）
 - 命令形で書く（「〜せよ」「〜するな」）
 - 参照資料が大きい場合は Skill に移す
+
+### paths フロントマターの書き方
+
+- YAML リスト形式は読み込まれないバグがある [Issue #16853](https://github.com/anthropics/claude-code/issues/16853)
+
+Good:
+
+```yaml
+paths: "**/*.{ts,tsx}"
+```
+
+Bad (YAML リスト形式):
+
+```yaml
+paths:
+  - "**/*.ts"
+  - "**/*.tsx"
+```

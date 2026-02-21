@@ -1,9 +1,5 @@
 ---
-paths:
-  - "**/*.html"
-  - "**/*.css"
-  - "**/*.vue"
-  - "**/*.tsx"
+paths: "**/*.{html,css,vue,tsx}"
 ---
 
 ## HTML のコーディング規約
