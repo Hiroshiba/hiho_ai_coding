@@ -4,6 +4,7 @@ paths: "**/*.py"
 
 ## Python のコーディング規約
 
+- `pip`ではなく`uv`を使え
 - 新しい記法を使え
   - typing.List 等を使うな、list 等を使え
 - `os.path`を使うな
