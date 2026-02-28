@@ -8,6 +8,7 @@
 - base/agents/*.md → ~/.claude/agents/
 - base/settings.json を ~/.claude/settings.json にマージ
 """
+
 import json
 import shutil
 import subprocess
@@ -254,16 +255,23 @@ def merge_env(existing_env: dict[str, str], new_env: dict[str, str]) -> dict[str
 def merge_settings(existing: dict, new: dict) -> dict:
     """settings.json をマージ"""
     existing_allow = set(existing.get("permissions", {}).get("allow", []))
+    existing_ask = set(existing.get("permissions", {}).get("ask", []))
     existing_deny = set(existing.get("permissions", {}).get("deny", []))
 
     new_allow = set(new.get("permissions", {}).get("allow", []))
+    new_ask = set(new.get("permissions", {}).get("ask", []))
     new_deny = set(new.get("permissions", {}).get("deny", []))
 
     merged_allow = sorted(existing_allow | new_allow)
+    merged_ask = sorted(existing_ask | new_ask)
     merged_deny = sorted(existing_deny | new_deny)
 
     result = existing.copy()
-    result["permissions"] = {"allow": merged_allow, "deny": merged_deny}
+    result["permissions"] = {
+        "allow": merged_allow,
+        "ask": merged_ask,
+        "deny": merged_deny,
+    }
 
     existing_env = existing.get("env", {})
     new_env = new.get("env", {})

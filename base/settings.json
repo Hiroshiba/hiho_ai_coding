@@ -210,7 +210,20 @@
       "Bash(xargs kill:*)",
       "mcp__playwright__browser_resize",
       "mcp__playwright__browser_navigate_back",
-      "Bash(file:*)"
+      "Bash(file:*)",
+      "Bash(gh api *)"
+    ],
+    "ask": [
+      "Bash(gh api *--input*)",
+      "Bash(gh api *-F*)",
+      "Bash(gh api *--field*)",
+      "Bash(gh api *-f*)",
+      "Bash(gh api *--raw-field*)",
+      "Bash(gh api *POST*)",
+      "Bash(gh api *PUT*)",
+      "Bash(gh api *DELETE*)",
+      "Bash(gh api *PATCH*)",
+      "Bash(gh api *graphql*)"
     ],
     "deny": [
       "WebFetch(domain:github.com)",
