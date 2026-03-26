@@ -267,6 +267,11 @@ def merge_settings(existing: dict, new: dict) -> dict:
     merged_deny = sorted(existing_deny | new_deny)
 
     result = existing.copy()
+
+    for key in new:
+        if key not in ("permissions", "env"):
+            result[key] = new[key]
+
     result["permissions"] = {
         "allow": merged_allow,
         "ask": merged_ask,
