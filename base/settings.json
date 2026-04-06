@@ -149,6 +149,8 @@
       "Bash(hiho_get_pr_review_thread_by_comment_id:*)",
       "Read(//tmp/**)",
       "Edit(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Edit(//private/tmp/**)",
       "Read(~/Github/hiho_ai_coding/**)",
       "WebFetch(domain:terms.line.me)",
       "WebFetch(domain:www.lawinsider.com)",
