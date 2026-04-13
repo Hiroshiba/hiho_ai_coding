@@ -10,6 +10,7 @@
 - base/rules/*.md を結合して ~/.codex/AGENTS.md を生成
 """
 
+import argparse
 import json
 import shutil
 import subprocess
@@ -144,9 +145,23 @@ def get_claude_settings_path() -> Path:
     return Path.home() / ".claude" / "settings.json"
 
 
-def get_codex_agents_path() -> Path:
-    """~/.codex/AGENTS.md のパスを取得"""
-    return Path.home() / ".codex" / "AGENTS.md"
+def parse_args() -> argparse.Namespace:
+    """コマンドライン引数を解析"""
+    parser = argparse.ArgumentParser(
+        description="Claude Code と Codex CLI の設定を同期します"
+    )
+    parser.add_argument(
+        "--codex-home",
+        type=Path,
+        default=Path.home() / ".codex",
+        help="Codex のホームディレクトリを指定します",
+    )
+    return parser.parse_args()
+
+
+def get_codex_agents_path(codex_home: Path) -> Path:
+    """Codex の AGENTS.md のパスを取得"""
+    return codex_home / "AGENTS.md"
 
 
 def check_claude_installed(claude_dir: Path):
@@ -164,7 +179,7 @@ def check_codex_installed(codex_dir: Path):
     if not codex_dir.exists():
         raise FileNotFoundError(
             "エラー: Codex CLI がインストールされていません。\n"
-            "~/.codex ディレクトリが見つかりません。\n"
+            f"{codex_dir} が見つかりません。\n"
             "Codex CLI をインストールしてから再度実行してください。"
         )
 
@@ -358,10 +373,10 @@ def build_codex_agents_md(rules_dir: Path) -> str:
     return "\n\n".join(sections) + "\n"
 
 
-def sync_codex_rules():
-    """rules から ~/.codex/AGENTS.md を生成"""
+def sync_codex_rules(codex_home: Path):
+    """rules から Codex の AGENTS.md を生成"""
     rules_dir = get_project_rules_dir()
-    agents_path = get_codex_agents_path()
+    agents_path = get_codex_agents_path(codex_home)
 
     agents_path.parent.mkdir(parents=True, exist_ok=True)
     agents_path.write_text(build_codex_agents_md(rules_dir))
@@ -371,10 +386,11 @@ def sync_codex_rules():
 
 def main():
     """Claude Code と Codex CLI の設定を同期"""
+    args = parse_args()
     sync_git_main()
 
     claude_dir = Path.home() / ".claude"
-    codex_dir = Path.home() / ".codex"
+    codex_dir = args.codex_home
     check_claude_installed(claude_dir)
     check_codex_installed(codex_dir)
 
@@ -386,7 +402,7 @@ def main():
     sync_settings()
 
     print("\nCodex 設定の同期を開始します...")
-    sync_codex_rules()
+    sync_codex_rules(codex_dir)
 
     print("\n全ての同期が完了しました")
 
