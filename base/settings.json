@@ -240,5 +240,6 @@
   },
   "env": {},
   "language": "日本語",
-  "autoMemoryEnabled": false
+  "autoMemoryEnabled": false,
+  "teammateMode": "tmux"
 }
