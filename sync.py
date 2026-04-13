@@ -1,4 +1,4 @@
-"""Claude Code 設定同期スクリプト
+"""Claude Code / Codex CLI 設定同期スクリプト
 
 このスクリプトは以下の同期処理を実行します:
 - Git: main ブランチを origin/main に追従
@@ -7,6 +7,7 @@
 - base/skills/ → ~/.claude/skills/
 - base/agents/*.md → ~/.claude/agents/
 - base/settings.json を ~/.claude/settings.json にマージ
+- base/rules/*.md を結合して ~/.codex/AGENTS.md を生成
 """
 
 import json
@@ -143,6 +144,11 @@ def get_claude_settings_path() -> Path:
     return Path.home() / ".claude" / "settings.json"
 
 
+def get_codex_agents_path() -> Path:
+    """~/.codex/AGENTS.md のパスを取得"""
+    return Path.home() / ".codex" / "AGENTS.md"
+
+
 def check_claude_installed(claude_dir: Path):
     """Claude Code のインストール確認"""
     if not claude_dir.exists():
@@ -150,6 +156,16 @@ def check_claude_installed(claude_dir: Path):
             "エラー: Claude Code がインストールされていません。\n"
             "~/.claude ディレクトリが見つかりません。\n"
             "Claude Code をインストールしてから再度実行してください。"
+        )
+
+
+def check_codex_installed(codex_dir: Path):
+    """Codex CLI のインストール確認"""
+    if not codex_dir.exists():
+        raise FileNotFoundError(
+            "エラー: Codex CLI がインストールされていません。\n"
+            "~/.codex ディレクトリが見つかりません。\n"
+            "Codex CLI をインストールしてから再度実行してください。"
         )
 
 
@@ -304,12 +320,63 @@ def sync_settings():
     print("settings.json を正常にマージしました")
 
 
+def strip_frontmatter(text: str) -> str:
+    """YAML frontmatter を除去"""
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return text
+
+    for i, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            remaining = lines[i + 1 :]
+            while remaining and remaining[0].strip() == "":
+                remaining.pop(0)
+            return "\n".join(remaining)
+
+    return text
+
+
+def build_codex_agents_md(rules_dir: Path) -> str:
+    """rules/*.md を結合して AGENTS.md 本文を生成"""
+    priority_files = ["text.md", "programming.md"]
+
+    for filename in priority_files:
+        if not (rules_dir / filename).exists():
+            raise FileNotFoundError(f"{rules_dir / filename} が見つかりません")
+
+    other_files = sorted(
+        f.name for f in rules_dir.glob("*.md") if f.name not in priority_files
+    )
+
+    sections = []
+    for filename in priority_files + other_files:
+        content = (rules_dir / filename).read_text()
+        stripped = strip_frontmatter(content)
+        if stripped.strip():
+            sections.append(stripped.rstrip())
+
+    return "\n\n".join(sections) + "\n"
+
+
+def sync_codex_rules():
+    """rules から ~/.codex/AGENTS.md を生成"""
+    rules_dir = get_project_rules_dir()
+    agents_path = get_codex_agents_path()
+
+    agents_path.parent.mkdir(parents=True, exist_ok=True)
+    agents_path.write_text(build_codex_agents_md(rules_dir))
+
+    print("AGENTS.md を生成しました")
+
+
 def main():
-    """Claude Code 設定を同期"""
+    """Claude Code と Codex CLI の設定を同期"""
     sync_git_main()
 
     claude_dir = Path.home() / ".claude"
+    codex_dir = Path.home() / ".codex"
     check_claude_installed(claude_dir)
+    check_codex_installed(codex_dir)
 
     print("\n設定ファイルの同期を開始します...")
     sync_rules()
@@ -317,6 +384,9 @@ def main():
     sync_skills()
     sync_agents()
     sync_settings()
+
+    print("\nCodex 設定の同期を開始します...")
+    sync_codex_rules()
 
     print("\n全ての同期が完了しました")
 
