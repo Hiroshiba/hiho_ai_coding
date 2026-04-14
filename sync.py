@@ -2,12 +2,12 @@
 
 このスクリプトは以下の同期処理を実行します:
 - Git: main ブランチを origin/main に追従
-- base/rules/*.md → ~/.claude/rules/
+- base/rules/*.md と base/rules/claude/*.md → ~/.claude/rules/
 - base/commands/*.md → ~/.claude/commands/
 - base/skills/ → ~/.claude/skills/
 - base/agents/*.md → ~/.claude/agents/
 - base/settings.json を ~/.claude/settings.json にマージ
-- base/rules/*.md を結合して ~/.codex/AGENTS.md を生成
+- base/rules/*.md と base/rules/codex/*.md を結合して ~/.codex/AGENTS.md を生成
 """
 
 import argparse
@@ -94,6 +94,16 @@ def get_project_rules_dir() -> Path:
     """プロジェクトの base/rules/ のパスを取得"""
     script_path = Path(__file__).resolve()
     return script_path.parent / "base" / "rules"
+
+
+def get_project_claude_only_rules_dir() -> Path:
+    """プロジェクトの base/rules/claude/ のパスを取得"""
+    return get_project_rules_dir() / "claude"
+
+
+def get_project_codex_only_rules_dir() -> Path:
+    """プロジェクトの base/rules/codex/ のパスを取得"""
+    return get_project_rules_dir() / "codex"
 
 
 def get_project_commands_dir() -> Path:
@@ -218,9 +228,39 @@ def sync_markdown_files(source_dir: Path, target_dir: Path, dir_name: str):
 
 def sync_rules():
     """ルールファイルを同期"""
-    source_dir = get_project_rules_dir()
+    common_dir = get_project_rules_dir()
+    claude_only_dir = get_project_claude_only_rules_dir()
     target_dir = get_claude_rules_dir()
-    sync_markdown_files(source_dir, target_dir, "rules")
+
+    if not common_dir.exists():
+        raise FileNotFoundError(f"{common_dir} が見つかりません")
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    common_files = sorted(f.name for f in common_dir.glob("*.md"))
+    if not common_files:
+        raise FileNotFoundError(f"{common_dir} に .md ファイルが見つかりません")
+
+    claude_only_files: list[str] = []
+    if claude_only_dir.exists():
+        claude_only_files = sorted(f.name for f in claude_only_dir.glob("*.md"))
+
+    duplicates = set(common_files) & set(claude_only_files)
+    if duplicates:
+        raise RuntimeError(
+            f"base/rules/ と base/rules/claude/ にファイル名の重複があります: {sorted(duplicates)}"
+        )
+
+    for file_name in common_files:
+        shutil.copy2(common_dir / file_name, target_dir / file_name)
+        print(f"{file_name} を同期しました")
+
+    for file_name in claude_only_files:
+        shutil.copy2(claude_only_dir / file_name, target_dir / file_name)
+        print(f"claude/{file_name} を同期しました")
+
+    known_files = set(common_files) | set(claude_only_files)
+    check_unexpected_files(target_dir, known_files, "rules")
 
 
 def sync_commands():
@@ -285,13 +325,16 @@ def merge_env(existing_env: dict[str, str], new_env: dict[str, str]) -> dict[str
 
 def merge_settings(existing: dict, new: dict) -> dict:
     """settings.json をマージ"""
-    existing_allow = set(existing.get("permissions", {}).get("allow", []))
-    existing_ask = set(existing.get("permissions", {}).get("ask", []))
-    existing_deny = set(existing.get("permissions", {}).get("deny", []))
+    existing_permissions = existing.get("permissions", {})
+    new_permissions = new.get("permissions", {})
 
-    new_allow = set(new.get("permissions", {}).get("allow", []))
-    new_ask = set(new.get("permissions", {}).get("ask", []))
-    new_deny = set(new.get("permissions", {}).get("deny", []))
+    existing_allow = set(existing_permissions.get("allow", []))
+    existing_ask = set(existing_permissions.get("ask", []))
+    existing_deny = set(existing_permissions.get("deny", []))
+
+    new_allow = set(new_permissions.get("allow", []))
+    new_ask = set(new_permissions.get("ask", []))
+    new_deny = set(new_permissions.get("deny", []))
 
     merged_allow = sorted(existing_allow | new_allow)
     merged_ask = sorted(existing_ask | new_ask)
@@ -303,11 +346,14 @@ def merge_settings(existing: dict, new: dict) -> dict:
         if key not in ("permissions", "env"):
             result[key] = new[key]
 
-    result["permissions"] = {
-        "allow": merged_allow,
-        "ask": merged_ask,
-        "deny": merged_deny,
-    }
+    merged_permissions = existing_permissions.copy()
+    for key, value in new_permissions.items():
+        if key not in ("allow", "ask", "deny"):
+            merged_permissions[key] = value
+    merged_permissions["allow"] = merged_allow
+    merged_permissions["ask"] = merged_ask
+    merged_permissions["deny"] = merged_deny
+    result["permissions"] = merged_permissions
 
     existing_env = existing.get("env", {})
     new_env = new.get("env", {})
@@ -351,8 +397,8 @@ def strip_frontmatter(text: str) -> str:
     return text
 
 
-def build_codex_agents_md(rules_dir: Path) -> str:
-    """rules/*.md を結合して AGENTS.md 本文を生成"""
+def build_codex_agents_md(rules_dir: Path, codex_only_dir: Path) -> str:
+    """rules/*.md と rules/codex/*.md を結合して AGENTS.md 本文を生成"""
     priority_files = ["text.md", "programming.md"]
 
     for filename in priority_files:
@@ -370,16 +416,25 @@ def build_codex_agents_md(rules_dir: Path) -> str:
         if stripped.strip():
             sections.append(stripped.rstrip())
 
+    if codex_only_dir.exists():
+        codex_only_files = sorted(f.name for f in codex_only_dir.glob("*.md"))
+        for filename in codex_only_files:
+            content = (codex_only_dir / filename).read_text()
+            stripped = strip_frontmatter(content)
+            if stripped.strip():
+                sections.append(stripped.rstrip())
+
     return "\n\n".join(sections) + "\n"
 
 
 def sync_codex_rules(codex_home: Path):
     """rules から Codex の AGENTS.md を生成"""
     rules_dir = get_project_rules_dir()
+    codex_only_dir = get_project_codex_only_rules_dir()
     agents_path = get_codex_agents_path(codex_home)
 
     agents_path.parent.mkdir(parents=True, exist_ok=True)
-    agents_path.write_text(build_codex_agents_md(rules_dir))
+    agents_path.write_text(build_codex_agents_md(rules_dir, codex_only_dir))
 
     print("AGENTS.md を生成しました")
 

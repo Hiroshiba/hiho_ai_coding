@@ -64,6 +64,3 @@
   - 最後の行に改行が無いと静的解析ツールがエラーを出す場合は、フォーマッターを使え
 - 指示がない限り git コマンドを実行するな
   - 指示があった場合は許可を求めるな
-- `github.com` および `raw.githubusercontent.com` への WebFetch はするな
-  - permissions で拒否されている
-  - GitHub 情報の取得には `mcp__github__` ツールか `gh` CLI を使え

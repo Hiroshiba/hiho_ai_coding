@@ -243,7 +243,8 @@
       "Bash(git add .)",
       "Bash(git -C :*)",
       "Bash(npm:*)"
-    ]
+    ],
+    "defaultMode": "acceptEdits"
   },
   "env": {},
   "language": "日本語",
