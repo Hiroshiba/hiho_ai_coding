@@ -1,0 +1,6 @@
+hiho*
+.DS_Store
+.mypy_cache/
+.venv*/
+*.local.*
+.playwright-mcp/

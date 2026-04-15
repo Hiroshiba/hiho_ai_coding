@@ -12,6 +12,7 @@
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -128,6 +129,12 @@ def get_project_settings_path() -> Path:
     """プロジェクトの base/settings.json のパスを取得"""
     script_path = Path(__file__).resolve()
     return script_path.parent / "base" / "settings.json"
+
+
+def get_project_gitignore_path() -> Path:
+    """プロジェクトの base/gitignore のパスを取得"""
+    script_path = Path(__file__).resolve()
+    return script_path.parent / "base" / "gitignore"
 
 
 def get_claude_rules_dir() -> Path:
@@ -381,6 +388,58 @@ def sync_settings():
     print("settings.json を正常にマージしました")
 
 
+def get_global_gitignore_path() -> Path:
+    """グローバル gitignore のパスを取得"""
+    result = subprocess.run(
+        ["git", "config", "--global", "--get", "core.excludesfile"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        return Path(result.stdout.strip()).expanduser()
+
+    xdg_config_home = os.environ.get("XDG_CONFIG_HOME", "")
+    if xdg_config_home:
+        return Path(xdg_config_home) / "git" / "ignore"
+    return Path.home() / ".config" / "git" / "ignore"
+
+
+def sync_gitignore():
+    """グローバル gitignore に必要なパターンを追記"""
+    target_path = get_global_gitignore_path()
+    source_path = get_project_gitignore_path()
+
+    if target_path.exists():
+        existing_lines = {
+            line.strip()
+            for line in target_path.read_text().splitlines()
+            if line.strip() and not line.strip().startswith("#")
+        }
+    else:
+        existing_lines = set()
+
+    source_patterns = [
+        line.strip()
+        for line in source_path.read_text().splitlines()
+        if line.strip()
+    ]
+    missing_patterns = [p for p in source_patterns if p not in existing_lines]
+
+    if not missing_patterns:
+        print("グローバル gitignore は最新です")
+        return
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    existing_content = target_path.read_text() if target_path.exists() else ""
+    if existing_content and not existing_content.endswith("\n"):
+        existing_content += "\n"
+    target_path.write_text(existing_content + "\n".join(missing_patterns) + "\n")
+
+    for pattern in missing_patterns:
+        print(f"{pattern} をグローバル gitignore に追加しました")
+
+
 def strip_frontmatter(text: str) -> str:
     """YAML frontmatter を除去"""
     lines = text.splitlines()
@@ -458,6 +517,9 @@ def main():
 
     print("\nCodex 設定の同期を開始します...")
     sync_codex_rules(codex_dir)
+
+    print("\nグローバル gitignore の同期を開始します...")
+    sync_gitignore()
 
     print("\n全ての同期が完了しました")
 
