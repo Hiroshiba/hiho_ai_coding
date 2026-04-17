@@ -235,8 +235,6 @@
       "Bash(gh api *graphql*)"
     ],
     "deny": [
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)",
       "NotebookEdit",
       "WebSearch",
       "Bash(git add -A)",
