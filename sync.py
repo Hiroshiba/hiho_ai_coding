@@ -8,6 +8,7 @@
 - base/agents/*.md → ~/.claude/agents/
 - base/settings.json を ~/.claude/settings.json にマージ
 - base/rules/*.md と base/rules/codex/*.md を結合して ~/.codex/AGENTS.md を生成
+- base/skills/ → ~/.codex/skills/
 """
 
 import argparse
@@ -181,6 +182,11 @@ def get_codex_agents_path(codex_home: Path) -> Path:
     return codex_home / "AGENTS.md"
 
 
+def get_codex_skills_dir(codex_home: Path) -> Path:
+    """Codex の skills/ のパスを取得"""
+    return codex_home / "skills"
+
+
 def check_claude_installed(claude_dir: Path):
     """Claude Code のインストール確認"""
     if not claude_dir.exists():
@@ -277,11 +283,8 @@ def sync_commands():
     sync_markdown_files(source_dir, target_dir, "commands")
 
 
-def sync_skills():
+def sync_skill_directories(source_dir: Path, target_dir: Path):
     """スキルディレクトリを同期"""
-    source_dir = get_project_skills_dir()
-    target_dir = get_claude_skills_dir()
-
     if not source_dir.exists():
         raise FileNotFoundError(f"{source_dir} が見つかりません")
 
@@ -294,6 +297,13 @@ def sync_skills():
                 shutil.rmtree(target_skill_dir)
             shutil.copytree(skill_dir, target_skill_dir)
             print(f"{skill_dir.name}/ を同期しました")
+
+
+def sync_skills():
+    """Claude Code のスキルディレクトリを同期"""
+    source_dir = get_project_skills_dir()
+    target_dir = get_claude_skills_dir()
+    sync_skill_directories(source_dir, target_dir)
 
 
 def sync_agents():
@@ -498,6 +508,14 @@ def sync_codex_rules(codex_home: Path):
     print("AGENTS.md を生成しました")
 
 
+def sync_codex_skills(codex_home: Path):
+    """Codex のスキルディレクトリを同期"""
+    source_dir = get_project_skills_dir()
+    target_dir = get_codex_skills_dir(codex_home)
+    # TODO: Codex と Claude Code のスキル書式差分を検証する
+    sync_skill_directories(source_dir, target_dir)
+
+
 def main():
     """Claude Code と Codex CLI の設定を同期"""
     args = parse_args()
@@ -517,6 +535,7 @@ def main():
 
     print("\nCodex 設定の同期を開始します...")
     sync_codex_rules(codex_dir)
+    sync_codex_skills(codex_dir)
 
     print("\nグローバル gitignore の同期を開始します...")
     sync_gitignore()
