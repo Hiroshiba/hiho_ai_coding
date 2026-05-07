@@ -21,6 +21,7 @@ python sync.py
 **Codex CLI** (`~/.codex/`):
 
 - `base/rules/*.md` を結合して `AGENTS.md` を生成
+- `base/config.toml` → `config.toml` にマージ
 - `base/skills/` → `skills/`
 
 **グローバル gitignore**:

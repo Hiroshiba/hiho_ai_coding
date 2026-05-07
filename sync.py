@@ -8,6 +8,7 @@
 - base/agents/*.md → ~/.claude/agents/
 - base/settings.json を ~/.claude/settings.json にマージ
 - base/rules/*.md と base/rules/codex/*.md を結合して ~/.codex/AGENTS.md を生成
+- base/config.toml を ~/.codex/config.toml にマージ
 - base/skills/ → ~/.codex/skills/
 """
 
@@ -132,6 +133,12 @@ def get_project_settings_path() -> Path:
     return script_path.parent / "base" / "settings.json"
 
 
+def get_project_codex_config_path() -> Path:
+    """プロジェクトの base/config.toml のパスを取得"""
+    script_path = Path(__file__).resolve()
+    return script_path.parent / "base" / "config.toml"
+
+
 def get_project_gitignore_path() -> Path:
     """プロジェクトの base/gitignore のパスを取得"""
     script_path = Path(__file__).resolve()
@@ -185,6 +192,11 @@ def get_codex_agents_path(codex_home: Path) -> Path:
 def get_codex_skills_dir(codex_home: Path) -> Path:
     """Codex の skills/ のパスを取得"""
     return codex_home / "skills"
+
+
+def get_codex_config_path(codex_home: Path) -> Path:
+    """Codex の config.toml のパスを取得"""
+    return codex_home / "config.toml"
 
 
 def check_claude_installed(claude_dir: Path):
@@ -508,6 +520,106 @@ def sync_codex_rules(codex_home: Path):
     print("AGENTS.md を生成しました")
 
 
+def load_top_level_toml_settings(file_path: Path) -> dict[str, str]:
+    """TOML のトップレベル設定を読み込む"""
+    settings: dict[str, str] = {}
+
+    for line in file_path.read_text().splitlines():
+        stripped = line.strip()
+        if stripped.startswith("["):
+            break
+        if stripped == "":
+            continue
+        if stripped.startswith("#"):
+            continue
+
+        key, separator, value = stripped.partition("=")
+        if separator == "":
+            continue
+
+        stripped_key = key.strip()
+        if stripped_key == "":
+            raise RuntimeError("TOML のキーが空です")
+
+        settings[stripped_key] = f"{stripped_key} = {value.strip()}"
+
+    if not settings:
+        raise RuntimeError(f"{file_path} にトップレベル設定が見つかりません")
+
+    return settings
+
+
+def merge_top_level_toml_settings(
+    existing_content: str, new_settings: dict[str, str]
+) -> str:
+    """TOML のトップレベル設定をマージ"""
+    if existing_content.strip() == "":
+        return "\n".join(new_settings.values()) + "\n"
+
+    lines = existing_content.splitlines()
+    first_table_index = len(lines)
+    for index, line in enumerate(lines):
+        if line.strip().startswith("["):
+            first_table_index = index
+            break
+
+    replaced_keys: set[str] = set()
+
+    for index in range(first_table_index):
+        stripped = lines[index].strip()
+        if stripped == "":
+            continue
+        if stripped.startswith("#"):
+            continue
+
+        key, separator, _ = stripped.partition("=")
+        if separator == "":
+            continue
+
+        stripped_key = key.strip()
+        if stripped_key == "":
+            raise RuntimeError("TOML のキーが空です")
+
+        if stripped_key in new_settings:
+            lines[index] = new_settings[stripped_key]
+            replaced_keys.add(stripped_key)
+
+    missing_assignments = [
+        value for key, value in new_settings.items() if key not in replaced_keys
+    ]
+    if not missing_assignments:
+        return "\n".join(lines) + "\n"
+
+    insertion_index = first_table_index
+    while insertion_index > 0 and lines[insertion_index - 1].strip() == "":
+        insertion_index -= 1
+
+    lines[insertion_index:insertion_index] = missing_assignments
+    next_index = insertion_index + len(missing_assignments)
+    if next_index < len(lines) and lines[next_index].strip() != "":
+        lines.insert(next_index, "")
+
+    return "\n".join(lines) + "\n"
+
+
+def sync_codex_config(codex_home: Path):
+    """Codex の config.toml をマージ"""
+    source_path = get_project_codex_config_path()
+    target_path = get_codex_config_path(codex_home)
+    new_settings = load_top_level_toml_settings(source_path)
+
+    if target_path.exists():
+        existing_content = target_path.read_text()
+    else:
+        existing_content = ""
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    merged_content = merge_top_level_toml_settings(existing_content, new_settings)
+    target_path.write_text(merged_content)
+
+    print("config.toml を正常にマージしました")
+
+
 def sync_codex_skills(codex_home: Path):
     """Codex のスキルディレクトリを同期"""
     source_dir = get_project_skills_dir()
@@ -535,6 +647,7 @@ def main():
 
     print("\nCodex 設定の同期を開始します...")
     sync_codex_rules(codex_dir)
+    sync_codex_config(codex_dir)
     sync_codex_skills(codex_dir)
 
     print("\nグローバル gitignore の同期を開始します...")
