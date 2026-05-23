@@ -213,7 +213,6 @@
       "mcp__playwright__browser_resize",
       "mcp__playwright__browser_navigate_back",
       "Bash(file:*)",
-      "Bash(gh api *)",
       "Bash(claude --version)",
       "Bash(codex --help)",
       "Bash(codex --version)",
