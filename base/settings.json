@@ -239,7 +239,6 @@
       "WebSearch",
       "Bash(git add -A)",
       "Bash(git add .)",
-      "Bash(git -C:*)",
       "Bash(npm:*)"
     ],
     "defaultMode": "acceptEdits"
