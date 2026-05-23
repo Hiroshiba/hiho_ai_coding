@@ -222,18 +222,6 @@
       "Bash(uv --version)",
       "Bash(mktemp:*)"
     ],
-    "ask": [
-      "Bash(gh api *--input*)",
-      "Bash(gh api *-F*)",
-      "Bash(gh api *--field*)",
-      "Bash(gh api *-f*)",
-      "Bash(gh api *--raw-field*)",
-      "Bash(gh api *POST*)",
-      "Bash(gh api *PUT*)",
-      "Bash(gh api *DELETE*)",
-      "Bash(gh api *PATCH*)",
-      "Bash(gh api *graphql*)"
-    ],
     "deny": [
       "NotebookEdit",
       "WebSearch",
