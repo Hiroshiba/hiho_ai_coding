@@ -10,6 +10,7 @@
 - base/rules/*.md と base/rules/codex/*.md を結合して ~/.codex/AGENTS.md を生成
 - base/config.toml を ~/.codex/config.toml にマージ
 - base/skills/ → ~/.codex/skills/
+- base/commands/*.md → ~/.codex/skills/ にスキルとして変換・同期
 """
 
 import argparse
@@ -624,8 +625,70 @@ def sync_codex_skills(codex_home: Path):
     """Codex のスキルディレクトリを同期"""
     source_dir = get_project_skills_dir()
     target_dir = get_codex_skills_dir(codex_home)
-    # TODO: Codex と Claude Code のスキル書式差分を検証する
     sync_skill_directories(source_dir, target_dir)
+
+
+def convert_command_to_skill_md(command_path: Path) -> str:
+    """コマンドファイルを Codex SKILL.md 形式に変換"""
+    content = command_path.read_text()
+    lines = content.splitlines()
+    skill_name = command_path.stem
+
+    if not lines or lines[0].strip() != "---":
+        return f"---\nname: {skill_name}\ndescription: {skill_name}\n---\n\n{content}\n"
+
+    end_index = None
+    for i, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            end_index = i
+            break
+
+    if end_index is None:
+        return f"---\nname: {skill_name}\ndescription: {skill_name}\n---\n\n{content}\n"
+
+    frontmatter_lines = lines[1:end_index]
+    new_frontmatter_lines = [f"name: {skill_name}"] + frontmatter_lines
+    body_lines = lines[end_index + 1 :]
+
+    result = "---\n" + "\n".join(new_frontmatter_lines) + "\n---\n" + "\n".join(body_lines)
+    if not result.endswith("\n"):
+        result += "\n"
+    return result
+
+
+def sync_codex_commands(codex_home: Path):
+    """コマンドを Codex スキルに変換して同期"""
+    commands_dir = get_project_commands_dir()
+    skills_dir = get_project_skills_dir()
+    target_dir = get_codex_skills_dir(codex_home)
+
+    if not commands_dir.exists():
+        raise FileNotFoundError(f"{commands_dir} が見つかりません")
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    existing_skills = set()
+    if skills_dir.exists():
+        existing_skills = {d.name for d in skills_dir.iterdir() if d.is_dir()}
+
+    for command_file in sorted(commands_dir.glob("*.md")):
+        skill_name = command_file.stem
+
+        if skill_name in existing_skills:
+            print(
+                f"{skill_name} はスキルとして既に存在するため、コマンドからの変換をスキップしました"
+            )
+            continue
+
+        skill_dir = target_dir / skill_name
+        if skill_dir.exists():
+            shutil.rmtree(skill_dir)
+        skill_dir.mkdir(parents=True, exist_ok=True)
+
+        skill_content = convert_command_to_skill_md(command_file)
+        (skill_dir / "SKILL.md").write_text(skill_content)
+
+        print(f"{skill_name} をコマンドからスキルに変換しました")
 
 
 def main():
@@ -649,6 +712,7 @@ def main():
     sync_codex_rules(codex_dir)
     sync_codex_config(codex_dir)
     sync_codex_skills(codex_dir)
+    sync_codex_commands(codex_dir)
 
     print("\nグローバル gitignore の同期を開始します...")
     sync_gitignore()
