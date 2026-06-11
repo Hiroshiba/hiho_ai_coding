@@ -628,14 +628,12 @@ def sync_codex_skills(codex_home: Path):
     sync_skill_directories(source_dir, target_dir)
 
 
-def convert_command_to_skill_md(command_path: Path) -> str:
-    """コマンドファイルを Codex SKILL.md 形式に変換"""
-    content = command_path.read_text()
+def parse_command_frontmatter(content: str) -> tuple[dict[str, str], str]:
+    """コマンドファイルの frontmatter と本文を分離"""
     lines = content.splitlines()
-    skill_name = command_path.stem
 
     if not lines or lines[0].strip() != "---":
-        return f"---\nname: {skill_name}\ndescription: {skill_name}\n---\n\n{content}\n"
+        return {}, content
 
     end_index = None
     for i, line in enumerate(lines[1:], start=1):
@@ -644,16 +642,59 @@ def convert_command_to_skill_md(command_path: Path) -> str:
             break
 
     if end_index is None:
-        return f"---\nname: {skill_name}\ndescription: {skill_name}\n---\n\n{content}\n"
+        return {}, content
 
-    frontmatter_lines = lines[1:end_index]
-    new_frontmatter_lines = [f"name: {skill_name}"] + frontmatter_lines
-    body_lines = lines[end_index + 1 :]
+    frontmatter: dict[str, str] = {}
+    for line in lines[1:end_index]:
+        key, sep, value = line.partition(":")
+        if sep:
+            frontmatter[key.strip()] = value.strip()
 
-    result = "---\n" + "\n".join(new_frontmatter_lines) + "\n---\n" + "\n".join(body_lines)
-    if not result.endswith("\n"):
-        result += "\n"
-    return result
+    body = "\n".join(lines[end_index + 1 :])
+    return frontmatter, body
+
+
+def build_codex_openai_yaml(
+    skill_name: str,
+    disable_model_invocation: bool,
+    argument_hint: str | None,
+) -> str:
+    """Codex の agents/openai.yaml を生成"""
+    sections = []
+
+    if argument_hint is not None:
+        sections.append(
+            f'interface:\n  default_prompt: "${skill_name} {argument_hint}"'
+        )
+
+    if disable_model_invocation:
+        sections.append("policy:\n  allow_implicit_invocation: false")
+
+    return "\n\n".join(sections) + "\n"
+
+
+def convert_command_to_codex_skill(command_path: Path) -> tuple[str, str | None]:
+    """コマンドファイルを Codex SKILL.md と openai.yaml に変換"""
+    content = command_path.read_text()
+    skill_name = command_path.stem
+    frontmatter, body = parse_command_frontmatter(content)
+
+    description = frontmatter.get("description", skill_name)
+
+    skill_md = f"---\nname: {skill_name}\ndescription: {description}\n---\n{body}"
+    if not skill_md.endswith("\n"):
+        skill_md += "\n"
+
+    disable_model_invocation = frontmatter.get("disable-model-invocation") == "true"
+    argument_hint = frontmatter.get("argument-hint")
+
+    openai_yaml = None
+    if disable_model_invocation or argument_hint is not None:
+        openai_yaml = build_codex_openai_yaml(
+            skill_name, disable_model_invocation, argument_hint
+        )
+
+    return skill_md, openai_yaml
 
 
 def sync_codex_commands(codex_home: Path):
@@ -685,8 +726,13 @@ def sync_codex_commands(codex_home: Path):
             shutil.rmtree(skill_dir)
         skill_dir.mkdir(parents=True, exist_ok=True)
 
-        skill_content = convert_command_to_skill_md(command_file)
+        skill_content, openai_yaml = convert_command_to_codex_skill(command_file)
         (skill_dir / "SKILL.md").write_text(skill_content)
+
+        if openai_yaml is not None:
+            agents_dir = skill_dir / "agents"
+            agents_dir.mkdir(parents=True, exist_ok=True)
+            (agents_dir / "openai.yaml").write_text(openai_yaml)
 
         print(f"{skill_name} をコマンドからスキルに変換しました")
 
