@@ -66,8 +66,8 @@ gh pr list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
 
 Issue・PR・コメントの本文は一時ファイル経由で渡す。`-b` で直接渡すとバッククォートや `$` がシェルに展開され、本文が壊れる。
 
-1. `mkdir -p hiho_temp && mktemp -u hiho_temp/hiho.XXXXXXXXXX` で一時ファイルパスを取得する
-2. 本文を Markdown としてそのパスに書く
+1. `mkdir -p hiho_temp && tempdir="$(mktemp -d hiho_temp/hiho.XXXXXXXXXX)" && printf '%s\n' "${tempdir}/body.md"` を実行し、出力されたパスを `<tempfile>` とする
+2. 本文を Markdown として `<tempfile>` に書く
 3. 作成・コメントのコマンドに `-F <tempfile>` を渡す
 
 ## Issue 作成
