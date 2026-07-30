@@ -13,6 +13,8 @@
   - catch 内で何もしないのは禁止
   - 到達不能コードは UnreachableError を投げよ
   - null/undefined の排除には assertNonNullable を使え
+- 別のエラーを投げるときは元のエラーを繋げよ
+  - TypeScript は `cause`、Python は `raise ... from` を使え
 - 未処理エラーはエラーバウンダリまで伝播させよ
   - エラーバウンダリはロギングのみにせよ
   - リトライやダイアログ表示などで適切に処理した場合は伝播不要
