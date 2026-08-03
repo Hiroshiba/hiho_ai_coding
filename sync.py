@@ -18,7 +18,12 @@ import json
 import os
 import shutil
 import subprocess
+from copy import deepcopy
 from pathlib import Path
+
+from tomlkit import TOMLDocument, document, dumps, parse
+from tomlkit.exceptions import ParseError
+from tomlkit.items import Table
 
 
 def get_project_root() -> Path:
@@ -521,101 +526,58 @@ def sync_codex_rules(codex_home: Path):
     print("AGENTS.md を生成しました")
 
 
-def load_top_level_toml_settings(file_path: Path) -> dict[str, str]:
-    """TOML のトップレベル設定を読み込む"""
-    settings: dict[str, str] = {}
-
-    for line in file_path.read_text().splitlines():
-        stripped = line.strip()
-        if stripped.startswith("["):
-            break
-        if stripped == "":
-            continue
-        if stripped.startswith("#"):
-            continue
-
-        key, separator, value = stripped.partition("=")
-        if separator == "":
-            continue
-
-        stripped_key = key.strip()
-        if stripped_key == "":
-            raise RuntimeError("TOML のキーが空です")
-
-        settings[stripped_key] = f"{stripped_key} = {value.strip()}"
-
-    if not settings:
-        raise RuntimeError(f"{file_path} にトップレベル設定が見つかりません")
-
-    return settings
+def load_toml_document(file_path: Path) -> TOMLDocument:
+    """TOMLファイルを読み込む"""
+    try:
+        return parse(file_path.read_text())
+    except ParseError as error:
+        raise RuntimeError(f"{file_path} のTOMLを解析できません") from error
 
 
-def merge_top_level_toml_settings(
-    existing_content: str, new_settings: dict[str, str]
-) -> str:
-    """TOML のトップレベル設定をマージ"""
-    if existing_content.strip() == "":
-        return "\n".join(new_settings.values()) + "\n"
+def merge_toml_tables(
+    existing_table: TOMLDocument | Table,
+    new_table: TOMLDocument | Table,
+) -> None:
+    """TOMLテーブルを再帰的にマージする"""
+    for key in new_table:
+        new_item = new_table.item(key)
+        if key in existing_table:
+            existing_item = existing_table.item(key)
+            if isinstance(existing_item, Table) and isinstance(new_item, Table):
+                merge_toml_tables(existing_item, new_item)
+                continue
 
-    lines = existing_content.splitlines()
-    first_table_index = len(lines)
-    for index, line in enumerate(lines):
-        if line.strip().startswith("["):
-            first_table_index = index
-            break
+        existing_table[key] = deepcopy(new_item)
 
-    replaced_keys: set[str] = set()
 
-    for index in range(first_table_index):
-        stripped = lines[index].strip()
-        if stripped == "":
-            continue
-        if stripped.startswith("#"):
-            continue
-
-        key, separator, _ = stripped.partition("=")
-        if separator == "":
-            continue
-
-        stripped_key = key.strip()
-        if stripped_key == "":
-            raise RuntimeError("TOML のキーが空です")
-
-        if stripped_key in new_settings:
-            lines[index] = new_settings[stripped_key]
-            replaced_keys.add(stripped_key)
-
-    missing_assignments = [
-        value for key, value in new_settings.items() if key not in replaced_keys
-    ]
-    if not missing_assignments:
-        return "\n".join(lines) + "\n"
-
-    insertion_index = first_table_index
-    while insertion_index > 0 and lines[insertion_index - 1].strip() == "":
-        insertion_index -= 1
-
-    lines[insertion_index:insertion_index] = missing_assignments
-    next_index = insertion_index + len(missing_assignments)
-    if next_index < len(lines) and lines[next_index].strip() != "":
-        lines.insert(next_index, "")
-
-    return "\n".join(lines) + "\n"
+def merge_toml_documents(
+    existing_document: TOMLDocument,
+    new_document: TOMLDocument,
+) -> TOMLDocument:
+    """TOML文書を再帰的にマージする"""
+    merged_document = deepcopy(existing_document)
+    merge_toml_tables(merged_document, new_document)
+    return merged_document
 
 
 def sync_codex_config(codex_home: Path):
     """Codex の config.toml をマージ"""
     source_path = get_project_codex_config_path()
     target_path = get_codex_config_path(codex_home)
-    new_settings = load_top_level_toml_settings(source_path)
+    new_document = load_toml_document(source_path)
+    if len(new_document) == 0:
+        raise RuntimeError(f"{source_path} に設定が見つかりません")
 
     if target_path.exists():
-        existing_content = target_path.read_text()
+        existing_document = load_toml_document(target_path)
     else:
-        existing_content = ""
+        existing_document = document()
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
-    merged_content = merge_top_level_toml_settings(existing_content, new_settings)
+    merged_document = merge_toml_documents(existing_document, new_document)
+    merged_content = dumps(merged_document)
+    if not merged_content.endswith("\n"):
+        merged_content += "\n"
     target_path.write_text(merged_content)
 
     print("config.toml を正常にマージしました")

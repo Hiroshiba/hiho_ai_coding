@@ -1,1 +1,4 @@
 web_search = "disabled"
+
+[features]
+default_mode_request_user_input = true

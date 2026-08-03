@@ -7,7 +7,7 @@ Claude Code と Codex CLI の設定を管理するプロジェクトです。
 ### すべての設定を同期
 
 ```bash
-python sync.py
+uv run sync.py
 ```
 
 **Claude Code** (`~/.claude/`):
