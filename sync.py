@@ -4,12 +4,12 @@
 - Git: main ブランチを origin/main に追従
 - base/rules/*.md と base/rules/claude/*.md → ~/.claude/rules/
 - base/commands/*.md → ~/.claude/commands/
-- base/skills/ → ~/.claude/skills/
+- base/skills/ と base/skills/claude/ → ~/.claude/skills/
 - base/agents/*.md → ~/.claude/agents/
 - base/settings.json を ~/.claude/settings.json にマージ
 - base/rules/*.md と base/rules/codex/*.md を結合して ~/.codex/AGENTS.md を生成
 - base/config.toml を ~/.codex/config.toml にマージ
-- base/skills/ → ~/.codex/skills/
+- base/skills/ と base/skills/codex/ → ~/.codex/skills/
 - base/commands/*.md → ~/.codex/skills/ にスキルとして変換・同期
 """
 
@@ -20,10 +20,13 @@ import shutil
 import subprocess
 from copy import deepcopy
 from pathlib import Path
+from typing import Literal
 
 from tomlkit import TOMLDocument, document, dumps, parse
 from tomlkit.exceptions import ParseError
 from tomlkit.items import Table
+
+SkillTarget = Literal["claude", "codex"]
 
 
 def get_project_root() -> Path:
@@ -125,6 +128,11 @@ def get_project_skills_dir() -> Path:
     """プロジェクトの base/skills/ のパスを取得"""
     script_path = Path(__file__).resolve()
     return script_path.parent / "base" / "skills"
+
+
+def get_project_scoped_skills_dir(target: SkillTarget) -> Path:
+    """対象固有の base/skills/ 配下のパスを取得"""
+    return get_project_skills_dir() / target
 
 
 def get_project_agents_dir() -> Path:
@@ -301,27 +309,144 @@ def sync_commands():
     sync_markdown_files(source_dir, target_dir, "commands")
 
 
-def sync_skill_directories(source_dir: Path, target_dir: Path):
-    """スキルディレクトリを同期"""
+def get_skill_directories(
+    source_dir: Path,
+    excluded_names: set[str],
+) -> dict[str, Path]:
+    """同期元にあるスキルディレクトリを取得"""
     if not source_dir.exists():
         raise FileNotFoundError(f"{source_dir} が見つかりません")
+    if not source_dir.is_dir():
+        raise NotADirectoryError(f"{source_dir} がディレクトリではありません")
 
-    target_dir.mkdir(parents=True, exist_ok=True)
-
+    skill_directories: dict[str, Path] = {}
     for skill_dir in source_dir.iterdir():
-        if skill_dir.is_dir():
-            target_skill_dir = target_dir / skill_dir.name
-            if target_skill_dir.exists():
-                shutil.rmtree(target_skill_dir)
-            shutil.copytree(skill_dir, target_skill_dir)
-            print(f"{skill_dir.name}/ を同期しました")
+        if skill_dir.name in excluded_names or not skill_dir.is_dir():
+            continue
+        if not (skill_dir / "SKILL.md").is_file():
+            raise FileNotFoundError(f"{skill_dir / 'SKILL.md'} が見つかりません")
+        skill_directories[skill_dir.name] = skill_dir
+
+    return skill_directories
 
 
-def sync_skills():
+def get_project_skill_directories(target: SkillTarget) -> dict[str, Path]:
+    """共通スキルと対象固有スキルのディレクトリを取得"""
+    scoped_directory_names = {"claude", "codex"}
+    common_skills = get_skill_directories(
+        get_project_skills_dir(),
+        scoped_directory_names,
+    )
+    scoped_skills = get_skill_directories(
+        get_project_scoped_skills_dir(target),
+        set(),
+    )
+
+    duplicate_names = set(common_skills) & set(scoped_skills)
+    if len(duplicate_names) > 0:
+        raise RuntimeError(
+            f"共通スキルと {target} 専用スキルに同名のスキルがあります: "
+            f"{sorted(duplicate_names)}"
+        )
+
+    return common_skills | scoped_skills
+
+
+def get_managed_skills_path(target_dir: Path) -> Path:
+    """同期管理情報のパスを取得"""
+    managed_skills_file_name = ".hiho-ai-coding-managed-skills.json"
+    return target_dir.parent / managed_skills_file_name
+
+
+def validate_managed_skill_name(skill_name: str, managed_skills_path: Path) -> None:
+    """同期管理情報のスキル名を検証"""
+    if skill_name in {"", ".", ".."} or Path(skill_name).name != skill_name:
+        raise RuntimeError(
+            f"{managed_skills_path} に不正なスキル名があります: {skill_name}"
+        )
+
+
+def load_managed_skill_names(managed_skills_path: Path) -> set[str]:
+    """同期管理情報からスキル名を読み込む"""
+    if not managed_skills_path.exists():
+        return set()
+
+    data = json.loads(managed_skills_path.read_text())
+    if not isinstance(data, dict) or set(data) != {"skills"}:
+        raise RuntimeError(f"{managed_skills_path} の形式が不正です")
+
+    skill_names = data["skills"]
+    if not isinstance(skill_names, list) or not all(
+        isinstance(skill_name, str) for skill_name in skill_names
+    ):
+        raise RuntimeError(f"{managed_skills_path} の skills が不正です")
+    if len(skill_names) != len(set(skill_names)):
+        raise RuntimeError(f"{managed_skills_path} の skills に重複があります")
+
+    for skill_name in skill_names:
+        validate_managed_skill_name(skill_name, managed_skills_path)
+
+    return set(skill_names)
+
+
+def save_managed_skill_names(
+    managed_skills_path: Path,
+    skill_names: set[str],
+) -> None:
+    """同期管理情報へスキル名を保存"""
+    data = {"skills": sorted(skill_names)}
+    managed_skills_path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+    )
+
+
+def remove_stale_managed_skills(
+    target_dir: Path,
+    stale_skill_names: set[str],
+) -> None:
+    """同期対象から外れた管理スキルを削除"""
+    for skill_name in sorted(stale_skill_names):
+        target_skill_dir = target_dir / skill_name
+        if not target_skill_dir.exists():
+            continue
+        if target_skill_dir.is_symlink() or not target_skill_dir.is_dir():
+            raise RuntimeError(
+                f"管理対象スキルの削除先が通常のディレクトリではありません: "
+                f"{target_skill_dir}"
+            )
+        shutil.rmtree(target_skill_dir)
+        print(f"{skill_name}/ を同期対象から削除しました")
+
+
+def sync_skill_directories(
+    source_skills: dict[str, Path],
+    target_dir: Path,
+) -> None:
+    """スキルディレクトリを同期"""
+    target_dir.mkdir(parents=True, exist_ok=True)
+    managed_skills_path = get_managed_skills_path(target_dir)
+    managed_skill_names = load_managed_skill_names(managed_skills_path)
+    source_skill_names = set(source_skills)
+    remove_stale_managed_skills(
+        target_dir,
+        managed_skill_names - source_skill_names,
+    )
+
+    for skill_name, skill_dir in sorted(source_skills.items()):
+        target_skill_dir = target_dir / skill_name
+        if target_skill_dir.exists():
+            shutil.rmtree(target_skill_dir)
+        shutil.copytree(skill_dir, target_skill_dir)
+        print(f"{skill_name}/ を同期しました")
+
+    save_managed_skill_names(managed_skills_path, source_skill_names)
+
+
+def sync_skills() -> None:
     """Claude Code のスキルディレクトリを同期"""
-    source_dir = get_project_skills_dir()
+    source_skills = get_project_skill_directories("claude")
     target_dir = get_claude_skills_dir()
-    sync_skill_directories(source_dir, target_dir)
+    sync_skill_directories(source_skills, target_dir)
 
 
 def sync_agents():
@@ -448,9 +573,7 @@ def sync_gitignore():
         existing_lines = set()
 
     source_patterns = [
-        line.strip()
-        for line in source_path.read_text().splitlines()
-        if line.strip()
+        line.strip() for line in source_path.read_text().splitlines() if line.strip()
     ]
     missing_patterns = [p for p in source_patterns if p not in existing_lines]
 
@@ -583,11 +706,11 @@ def sync_codex_config(codex_home: Path):
     print("config.toml を正常にマージしました")
 
 
-def sync_codex_skills(codex_home: Path):
+def sync_codex_skills(codex_home: Path) -> None:
     """Codex のスキルディレクトリを同期"""
-    source_dir = get_project_skills_dir()
+    source_skills = get_project_skill_directories("codex")
     target_dir = get_codex_skills_dir(codex_home)
-    sync_skill_directories(source_dir, target_dir)
+    sync_skill_directories(source_skills, target_dir)
 
 
 def parse_command_frontmatter(content: str) -> tuple[dict[str, str], str]:
@@ -659,10 +782,9 @@ def convert_command_to_codex_skill(command_path: Path) -> tuple[str, str | None]
     return skill_md, openai_yaml
 
 
-def sync_codex_commands(codex_home: Path):
+def sync_codex_commands(codex_home: Path) -> None:
     """コマンドを Codex スキルに変換して同期"""
     commands_dir = get_project_commands_dir()
-    skills_dir = get_project_skills_dir()
     target_dir = get_codex_skills_dir(codex_home)
 
     if not commands_dir.exists():
@@ -670,9 +792,7 @@ def sync_codex_commands(codex_home: Path):
 
     target_dir.mkdir(parents=True, exist_ok=True)
 
-    existing_skills = set()
-    if skills_dir.exists():
-        existing_skills = {d.name for d in skills_dir.iterdir() if d.is_dir()}
+    existing_skills = set(get_project_skill_directories("codex"))
 
     for command_file in sorted(commands_dir.glob("*.md")):
         skill_name = command_file.stem

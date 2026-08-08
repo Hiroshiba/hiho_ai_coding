@@ -14,7 +14,8 @@ uv run sync.py
 
 - `base/rules/*.md` → `rules/`
 - `base/commands/*.md` → `commands/`
-- `base/skills/` → `skills/`
+- `base/skills/<スキル名>/` → `skills/`
+- `base/skills/claude/<スキル名>/` → `skills/`
 - `base/agents/*.md` → `agents/`
 - `base/settings.json` → `settings.json` にマージ
 
@@ -22,7 +23,8 @@ uv run sync.py
 
 - `base/rules/*.md` を結合して `AGENTS.md` を生成
 - `base/config.toml` → `config.toml` にマージ
-- `base/skills/` → `skills/`
+- `base/skills/<スキル名>/` → `skills/`
+- `base/skills/codex/<スキル名>/` → `skills/`
 
 **グローバル gitignore**:
 

@@ -3,12 +3,17 @@ description: Skill を作成・修正する
 disable-model-invocation: true
 ---
 
-Claude Code Skills を作成・修正してください。
+Claude Code と Codex の Skills を作成・修正してください。
 
 ## 配置先
 
-- **デフォルト**: `~/Github/hiho_ai_coding/base/skills/`
-- **ローカル環境**: ユーザーが「ローカル環境」「この環境に」「この環境の」「このリポジトリに」「このリポジトリの」などと指示した場合は、現在の作業ディレクトリの `.claude/skills/` 以下を対象とする
+- **共通**: 対象の指定がない場合は `~/Github/hiho_ai_coding/base/skills/` 以下を対象とする
+- **Claude Code 専用**: `~/Github/hiho_ai_coding/base/skills/claude/` 以下を対象とする
+- **Codex 専用**: `~/Github/hiho_ai_coding/base/skills/codex/` 以下を対象とする
+- **Claude Code のローカル環境**: 現在の作業ディレクトリの `.claude/skills/` 以下を対象とする
+- **Codex のローカル環境**: 現在の作業ディレクトリの `.agents/skills/` 以下を対象とする
+
+ユーザーが「ローカル環境」「この環境に」「この環境の」「このリポジトリに」「このリポジトリの」などと指示した場合はローカル環境を対象としてください。
 
 ## 手順
 
