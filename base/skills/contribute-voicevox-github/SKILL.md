@@ -62,9 +62,9 @@ gh issue list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
 gh pr list --repo VOICEVOX/{repo} --author {username} --state all --limit 5
 ```
 
-### 日本語規範スキルの実行
+### 自然な日本スキルの実行
 
-本文のmarkdownファイルを書く直前に、必ず日本語規範スキルを実行する。
+本文のmarkdownファイルを書く直前に、必ず`natural-japanese`スキルを実行する。
 
 ## 本文の渡し方
 
