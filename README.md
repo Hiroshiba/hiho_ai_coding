@@ -23,6 +23,7 @@ uv run sync.py
 
 - `base/rules/*.md` を結合して `AGENTS.md` を生成
 - `base/config.toml` → `config.toml` にマージ
+- `base/agents/*.md` → `agents/*.toml` に変換
 - `base/skills/<スキル名>/` → `skills/`
 - `base/skills/codex/<スキル名>/` → `skills/`
 

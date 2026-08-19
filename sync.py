@@ -9,6 +9,7 @@
 - base/settings.json を ~/.claude/settings.json にマージ
 - base/rules/*.md と base/rules/codex/*.md を結合して ~/.codex/AGENTS.md を生成
 - base/config.toml を ~/.codex/config.toml にマージ
+- base/agents/*.md を ~/.codex/agents/*.toml に変換・同期
 - base/skills/ と base/skills/codex/ → ~/.codex/skills/
 - base/commands/*.md → ~/.codex/skills/ にスキルとして変換・同期
 """
@@ -22,7 +23,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Literal
 
-from tomlkit import TOMLDocument, document, dumps, parse
+from tomlkit import TOMLDocument, document, dumps, parse, string, table
 from tomlkit.exceptions import ParseError
 from tomlkit.items import Table
 
@@ -206,6 +207,16 @@ def get_codex_agents_path(codex_home: Path) -> Path:
 def get_codex_skills_dir(codex_home: Path) -> Path:
     """Codex の skills/ のパスを取得"""
     return codex_home / "skills"
+
+
+def get_codex_custom_agents_dir(codex_home: Path) -> Path:
+    """Codex のカスタムエージェントディレクトリのパスを取得"""
+    return codex_home / "agents"
+
+
+def get_managed_codex_agents_path(codex_home: Path) -> Path:
+    """Codex エージェントの同期管理情報のパスを取得"""
+    return codex_home / ".hiho-ai-coding-managed-agents.json"
 
 
 def get_codex_config_path(codex_home: Path) -> Path:
@@ -449,11 +460,292 @@ def sync_skills() -> None:
     sync_skill_directories(source_skills, target_dir)
 
 
-def sync_agents():
-    """エージェントファイルを同期"""
+def sync_claude_agents() -> None:
+    """Claude Code のエージェントファイルを同期"""
     source_dir = get_project_agents_dir()
     target_dir = get_claude_agents_dir()
     sync_markdown_files(source_dir, target_dir, "agents")
+
+
+def parse_agent_frontmatter(agent_path: Path) -> tuple[dict[str, str], str]:
+    """エージェントファイルの frontmatter と本文を解析"""
+    lines = agent_path.read_text().splitlines()
+    if len(lines) == 0 or lines[0].strip() != "---":
+        raise RuntimeError(f"{agent_path} に frontmatter の開始行がありません")
+
+    end_index: int | None = None
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            end_index = index
+            break
+
+    if end_index is None:
+        raise RuntimeError(f"{agent_path} に frontmatter の終了行がありません")
+
+    frontmatter: dict[str, str] = {}
+    for line_number, line in enumerate(lines[1:end_index], start=2):
+        if line.strip() == "":
+            continue
+        key, separator, value = line.partition(":")
+        normalized_key = key.strip()
+        normalized_value = value.strip()
+        if separator == "" or normalized_key == "" or normalized_value == "":
+            raise RuntimeError(f"{agent_path}:{line_number} の frontmatter が不正です")
+        if normalized_key in frontmatter:
+            raise RuntimeError(
+                f"{agent_path}:{line_number} の frontmatter に "
+                f"{normalized_key} が重複しています"
+            )
+        frontmatter[normalized_key] = normalized_value
+
+    body = "\n".join(lines[end_index + 1 :]).strip("\n")
+    if body.strip() == "":
+        raise RuntimeError(f"{agent_path} に本文がありません")
+
+    return frontmatter, body + "\n"
+
+
+def parse_codex_agent_mcp_tools(
+    tools_value: str,
+    agent_path: Path,
+) -> dict[str, list[str]]:
+    """Claude Code のツール一覧を Codex の MCP ツール一覧へ変換"""
+    raw_tool_names = tools_value.split(",")
+    if any(raw_tool_name.strip() == "" for raw_tool_name in raw_tool_names):
+        raise RuntimeError(f"{agent_path} の tools に空のツール名があります")
+
+    tool_names = [raw_tool_name.strip() for raw_tool_name in raw_tool_names]
+    if len(tool_names) != len(set(tool_names)):
+        raise RuntimeError(f"{agent_path} の tools に重複があります")
+
+    mcp_tools: dict[str, list[str]] = {}
+    for tool_name in tool_names:
+        if tool_name == "TodoWrite":
+            continue
+        if not tool_name.startswith("mcp__"):
+            raise RuntimeError(
+                f"{agent_path} に Codex へ変換できないツールがあります: {tool_name}"
+            )
+
+        server_name, separator, mcp_tool_name = tool_name.removeprefix(
+            "mcp__"
+        ).partition("__")
+        if separator == "" or server_name == "" or mcp_tool_name == "":
+            raise RuntimeError(f"{agent_path} の MCP ツール名が不正です: {tool_name}")
+
+        if server_name not in mcp_tools:
+            mcp_tools[server_name] = []
+        mcp_tools[server_name].append(mcp_tool_name)
+
+    return mcp_tools
+
+
+def convert_claude_agent_model_to_codex(
+    claude_model: str,
+    agent_path: Path,
+) -> tuple[str, str]:
+    """Claude Code のモデル指定を Codex のモデル指定へ変換"""
+    if claude_model == "sonnet":
+        return "gpt-5.6-luna", "max"
+    raise RuntimeError(
+        f"{agent_path} に Codex へ変換できないモデル指定があります: {claude_model}"
+    )
+
+
+def convert_agent_to_codex_toml(agent_path: Path) -> tuple[str, str]:
+    """Claude Code のエージェントを Codex の TOML へ変換"""
+    frontmatter, body = parse_agent_frontmatter(agent_path)
+    supported_fields = {"name", "description", "tools", "model", "color"}
+    unexpected_fields = set(frontmatter) - supported_fields
+    if len(unexpected_fields) > 0:
+        raise RuntimeError(
+            f"{agent_path} に Codex へ変換できない frontmatter 項目があります: "
+            f"{sorted(unexpected_fields)}"
+        )
+
+    required_fields = {"name", "description"}
+    missing_fields = required_fields - set(frontmatter)
+    if len(missing_fields) > 0:
+        raise RuntimeError(
+            f"{agent_path} の frontmatter に必須項目がありません: "
+            f"{sorted(missing_fields)}"
+        )
+
+    agent_name = frontmatter["name"]
+    if agent_name != agent_path.stem:
+        raise RuntimeError(
+            f"{agent_path} のファイル名と name が一致しません: {agent_name}"
+        )
+
+    mcp_tools: dict[str, list[str]] = {}
+    tools_value = frontmatter.get("tools")
+    if tools_value is not None:
+        mcp_tools = parse_codex_agent_mcp_tools(tools_value, agent_path)
+
+    model_value = frontmatter.get("model")
+
+    agent_document = document()
+    agent_document["name"] = agent_name
+    agent_document["description"] = frontmatter["description"]
+    if model_value is not None:
+        codex_model, reasoning_effort = convert_claude_agent_model_to_codex(
+            model_value,
+            agent_path,
+        )
+        agent_document["model"] = codex_model
+        agent_document["model_reasoning_effort"] = reasoning_effort
+    agent_document["developer_instructions"] = string(body, multiline=True)
+
+    if len(mcp_tools) > 0:
+        mcp_servers = table()
+        for server_name in sorted(mcp_tools):
+            server_config = table()
+            server_config["enabled_tools"] = mcp_tools[server_name]
+            mcp_servers[server_name] = server_config
+        agent_document["mcp_servers"] = mcp_servers
+
+    content = dumps(agent_document)
+    if not content.endswith("\n"):
+        content += "\n"
+
+    return f"{agent_name}.toml", content
+
+
+def validate_managed_codex_agent_file_name(
+    file_name: str,
+    managed_agents_path: Path,
+) -> None:
+    """Codex エージェントの同期管理ファイル名を検証"""
+    if (
+        file_name in {"", ".", ".."}
+        or Path(file_name).name != file_name
+        or Path(file_name).suffix != ".toml"
+    ):
+        raise RuntimeError(
+            f"{managed_agents_path} に不正なファイル名があります: {file_name}"
+        )
+
+
+def load_managed_codex_agent_file_names(managed_agents_path: Path) -> set[str]:
+    """同期管理情報から Codex エージェントのファイル名を読み込む"""
+    if managed_agents_path.is_symlink():
+        raise RuntimeError(
+            f"Codex エージェントの同期管理情報が通常のファイルではありません: "
+            f"{managed_agents_path}"
+        )
+    if not managed_agents_path.exists():
+        return set()
+    if not managed_agents_path.is_file():
+        raise RuntimeError(
+            f"Codex エージェントの同期管理情報が通常のファイルではありません: "
+            f"{managed_agents_path}"
+        )
+
+    data = json.loads(managed_agents_path.read_text())
+    if not isinstance(data, dict) or set(data) != {"agents"}:
+        raise RuntimeError(f"{managed_agents_path} の形式が不正です")
+
+    file_names = data["agents"]
+    if not isinstance(file_names, list) or not all(
+        isinstance(file_name, str) for file_name in file_names
+    ):
+        raise RuntimeError(f"{managed_agents_path} の agents が不正です")
+    if len(file_names) != len(set(file_names)):
+        raise RuntimeError(f"{managed_agents_path} の agents に重複があります")
+
+    for file_name in file_names:
+        validate_managed_codex_agent_file_name(file_name, managed_agents_path)
+
+    return set(file_names)
+
+
+def save_managed_codex_agent_file_names(
+    managed_agents_path: Path,
+    file_names: set[str],
+) -> None:
+    """同期管理情報へ Codex エージェントのファイル名を保存"""
+    data = {"agents": sorted(file_names)}
+    managed_agents_path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+    )
+
+
+def sync_codex_agents(codex_home: Path) -> None:
+    """Codex のカスタムエージェントを変換して同期"""
+    source_dir = get_project_agents_dir()
+    if not source_dir.exists():
+        raise FileNotFoundError(f"{source_dir} が見つかりません")
+    if not source_dir.is_dir():
+        raise NotADirectoryError(f"{source_dir} がディレクトリではありません")
+
+    source_files = sorted(source_dir.glob("*.md"))
+    if len(source_files) == 0:
+        raise FileNotFoundError(f"{source_dir} に .md ファイルが見つかりません")
+
+    generated_agents: dict[str, str] = {}
+    for source_file in source_files:
+        if source_file.is_symlink() or not source_file.is_file():
+            raise RuntimeError(
+                f"エージェントの同期元が通常のファイルではありません: {source_file}"
+            )
+        file_name, content = convert_agent_to_codex_toml(source_file)
+        if file_name in generated_agents:
+            raise RuntimeError(
+                f"Codex エージェントの出力ファイル名が重複しています: {file_name}"
+            )
+        generated_agents[file_name] = content
+
+    target_dir = get_codex_custom_agents_dir(codex_home)
+    if target_dir.is_symlink():
+        raise RuntimeError(
+            f"Codex エージェントの同期先が通常のディレクトリではありません: "
+            f"{target_dir}"
+        )
+    if target_dir.exists() and not target_dir.is_dir():
+        raise RuntimeError(
+            f"Codex エージェントの同期先が通常のディレクトリではありません: "
+            f"{target_dir}"
+        )
+
+    managed_agents_path = get_managed_codex_agents_path(codex_home)
+    managed_file_names = load_managed_codex_agent_file_names(managed_agents_path)
+    generated_file_names = set(generated_agents)
+
+    for file_name in sorted(managed_file_names | generated_file_names):
+        target_file = target_dir / file_name
+        if target_file.is_symlink():
+            raise RuntimeError(
+                f"Codex エージェントの同期先が通常のファイルではありません: "
+                f"{target_file}"
+            )
+        if target_file.exists() and not target_file.is_file():
+            raise RuntimeError(
+                f"Codex エージェントの同期先が通常のファイルではありません: "
+                f"{target_file}"
+            )
+        if target_file.exists() and file_name not in managed_file_names:
+            raise RuntimeError(
+                f"管理対象外の Codex エージェントを上書きできません: {target_file}"
+            )
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    stale_file_names = managed_file_names - generated_file_names
+    for file_name in sorted(stale_file_names):
+        target_file = target_dir / file_name
+        if not target_file.exists():
+            continue
+        target_file.unlink()
+        print(f"{file_name} を Codex エージェントの同期対象から削除しました")
+
+    for file_name, content in sorted(generated_agents.items()):
+        (target_dir / file_name).write_text(content)
+        print(f"{file_name} を Codex エージェントとして同期しました")
+
+    save_managed_codex_agent_file_names(
+        managed_agents_path,
+        generated_file_names,
+    )
 
 
 def load_json_file(file_path: Path) -> dict:
@@ -833,12 +1125,13 @@ def main():
     sync_rules()
     sync_commands()
     sync_skills()
-    sync_agents()
+    sync_claude_agents()
     sync_settings()
 
     print("\nCodex 設定の同期を開始します...")
     sync_codex_rules(codex_dir)
     sync_codex_config(codex_dir)
+    sync_codex_agents(codex_dir)
     sync_codex_skills(codex_dir)
     sync_codex_commands(codex_dir)
 
