@@ -1,5 +1,9 @@
 web_search = "disabled"
 
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@latest"]
+
 [features]
 default_mode_request_user_input = true
 

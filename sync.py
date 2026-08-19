@@ -552,7 +552,10 @@ def convert_claude_agent_model_to_codex(
     )
 
 
-def convert_agent_to_codex_toml(agent_path: Path) -> tuple[str, str]:
+def convert_agent_to_codex_toml(
+    agent_path: Path,
+    mcp_server_configs: Table,
+) -> tuple[str, str]:
     """Claude Code のエージェントを Codex の TOML へ変換"""
     frontmatter, body = parse_agent_frontmatter(agent_path)
     supported_fields = {"name", "description", "tools", "model", "color"}
@@ -599,7 +602,19 @@ def convert_agent_to_codex_toml(agent_path: Path) -> tuple[str, str]:
     if len(mcp_tools) > 0:
         mcp_servers = table()
         for server_name in sorted(mcp_tools):
-            server_config = table()
+            source_server_config = mcp_server_configs.get(server_name)
+            if not isinstance(source_server_config, Table):
+                raise RuntimeError(
+                    f"{get_project_codex_config_path()} に "
+                    f"MCP サーバー設定がありません: {server_name}"
+                )
+            transport_fields = {"command", "url"} & set(source_server_config)
+            if len(transport_fields) != 1:
+                raise RuntimeError(
+                    f"{get_project_codex_config_path()} の MCP サーバーには "
+                    f"command または url のどちらか一方が必要です: {server_name}"
+                )
+            server_config = deepcopy(source_server_config)
             server_config["enabled_tools"] = mcp_tools[server_name]
             mcp_servers[server_name] = server_config
         agent_document["mcp_servers"] = mcp_servers
@@ -682,13 +697,21 @@ def sync_codex_agents(codex_home: Path) -> None:
     if len(source_files) == 0:
         raise FileNotFoundError(f"{source_dir} に .md ファイルが見つかりません")
 
+    config_path = get_project_codex_config_path()
+    mcp_server_configs = load_toml_document(config_path).get("mcp_servers")
+    if not isinstance(mcp_server_configs, Table):
+        raise RuntimeError(f"{config_path} に mcp_servers がありません")
+
     generated_agents: dict[str, str] = {}
     for source_file in source_files:
         if source_file.is_symlink() or not source_file.is_file():
             raise RuntimeError(
                 f"エージェントの同期元が通常のファイルではありません: {source_file}"
             )
-        file_name, content = convert_agent_to_codex_toml(source_file)
+        file_name, content = convert_agent_to_codex_toml(
+            source_file,
+            mcp_server_configs,
+        )
         if file_name in generated_agents:
             raise RuntimeError(
                 f"Codex エージェントの出力ファイル名が重複しています: {file_name}"
