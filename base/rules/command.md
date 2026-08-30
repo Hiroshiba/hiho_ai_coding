@@ -8,3 +8,5 @@
   - リポジトリ内に一時ファイルを作るなら `hiho` を頭に付けよ
 - git worktree を作成する際は `<リポジトリのルート>/hiho_git_worktrees/<name>` に作成せよ
   - ルートは `dirname "$(git rev-parse --path-format=absolute --git-common-dir)"` で求めよ
+- ブランチを最新に追従させるときは `git rebase` ではなく `git merge` を使え
+  - rebase すると force push が必要になり、GitHub の PR コメントが参照先を見失うため
