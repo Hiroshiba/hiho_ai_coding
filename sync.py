@@ -2,6 +2,7 @@
 
 このスクリプトは以下の同期処理を実行します:
 - Git: main ブランチを origin/main に追従
+- base/claude.json を ~/.claude.json にマージ
 - base/rules/*.md と base/rules/claude/*.md → ~/.claude/rules/
 - base/commands/*.md → ~/.claude/commands/
 - base/skills/ と base/skills/claude/ → ~/.claude/skills/
@@ -142,6 +143,11 @@ def get_project_agents_dir() -> Path:
     return script_path.parent / "base" / "agents"
 
 
+def get_project_claude_config_path() -> Path:
+    """プロジェクトの base/claude.json のパスを取得"""
+    return get_project_root() / "base" / "claude.json"
+
+
 def get_project_settings_path() -> Path:
     """プロジェクトの base/settings.json のパスを取得"""
     script_path = Path(__file__).resolve()
@@ -178,6 +184,11 @@ def get_claude_skills_dir() -> Path:
 def get_claude_agents_dir() -> Path:
     """~/.claude/agents/ のパスを取得"""
     return Path.home() / ".claude" / "agents"
+
+
+def get_claude_config_path() -> Path:
+    """~/.claude.json のパスを取得"""
+    return Path.home() / ".claude.json"
 
 
 def get_claude_settings_path() -> Path:
@@ -838,8 +849,23 @@ def merge_settings(existing: dict, new: dict) -> dict:
     return result
 
 
-def sync_settings():
-    """設定ファイルをマージ"""
+def sync_claude_global_config() -> None:
+    """Claude Code のグローバル設定をマージ"""
+    project_config_path = get_project_claude_config_path()
+    claude_config_path = get_claude_config_path()
+    new_config = load_json_file(project_config_path)
+
+    if claude_config_path.exists():
+        existing_config = load_json_file(claude_config_path)
+    else:
+        existing_config = {}
+
+    save_json_file(claude_config_path, existing_config | new_config)
+    print("claude.json を正常にマージしました")
+
+
+def sync_claude_settings() -> None:
+    """Claude Code の settings.json をマージ"""
     project_settings_path = get_project_settings_path()
     claude_settings_path = get_claude_settings_path()
 
@@ -1149,7 +1175,8 @@ def main():
     sync_commands()
     sync_skills()
     sync_claude_agents()
-    sync_settings()
+    sync_claude_global_config()
+    sync_claude_settings()
 
     print("\nCodex 設定の同期を開始します...")
     sync_codex_rules(codex_dir)

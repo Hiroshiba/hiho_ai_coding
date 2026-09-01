@@ -10,14 +10,15 @@ Claude Code と Codex CLI の設定を管理するプロジェクトです。
 uv run sync.py
 ```
 
-**Claude Code** (`~/.claude/`):
+**Claude Code**:
 
-- `base/rules/*.md` → `rules/`
-- `base/commands/*.md` → `commands/`
-- `base/skills/<スキル名>/` → `skills/`
-- `base/skills/claude/<スキル名>/` → `skills/`
-- `base/agents/*.md` → `agents/`
-- `base/settings.json` → `settings.json` にマージ
+- `base/claude.json` → `~/.claude.json` にマージ
+- `base/rules/*.md` → `~/.claude/rules/`
+- `base/commands/*.md` → `~/.claude/commands/`
+- `base/skills/<スキル名>/` → `~/.claude/skills/`
+- `base/skills/claude/<スキル名>/` → `~/.claude/skills/`
+- `base/agents/*.md` → `~/.claude/agents/`
+- `base/settings.json` → `~/.claude/settings.json` にマージ
 
 **Codex CLI** (`~/.codex/`):
 
