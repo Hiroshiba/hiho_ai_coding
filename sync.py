@@ -950,7 +950,7 @@ def strip_frontmatter(text: str) -> str:
 
 def build_codex_agents_md(rules_dir: Path, codex_only_dir: Path) -> str:
     """rules/*.md と rules/codex/*.md を結合して AGENTS.md 本文を生成"""
-    priority_files = ["text.md", "programming.md"]
+    priority_files = ["consistency.md", "text.md", "programming.md"]
 
     for filename in priority_files:
         if not (rules_dir / filename).exists():
