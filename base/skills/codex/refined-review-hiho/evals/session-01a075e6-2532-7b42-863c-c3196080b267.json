@@ -1,0 +1,364 @@
+{
+  "session_id": "01a075e6-2532-7b42-863c-c3196080b267",
+  "skill_name": "refined-review-hiho",
+  "source_log": "/home/hihok/.codex/sessions/2026/09/06/rollout-2026-09-06T17-46-52-01a075e6-2532-7b42-863c-c3196080b267.jsonl",
+  "related_logs": [],
+  "workflow": "公式 skill-creator の既存スキル更新、独立エージェントによる動作評価、quick_validate を使用。評価用の実行基盤は新設していない。",
+  "candidates": [
+    {
+      "id": "recipient_benefit_for_github_references",
+      "type": "GitHub へ投稿する文章の書き方",
+      "classification": [
+        "コメントとドキュメント",
+        "GitHub へ投稿する文章の書き方"
+      ],
+      "scope": "このスキルで作成する PR 本文と通常 PR コメント。レビュー指摘には適用しない。",
+      "condition": "Issue、PR、コメントへのリンクを投稿文へ載せるとき",
+      "check": "資料と変更が直接関係し、参照先の読者に通知や被参照記録が役立つか確認する。",
+      "action": "観測例だけの参照を省き、判断理由に必要な事実は文章で残す。実際に解決する課題や相手の対応に役立つ参照は残す。",
+      "risk": "リンク先で対応や判断に使われない被参照記録を増やす。",
+      "exception": "ユーザーの明示指定を優先する。レビュー指摘の根拠リンクにはこの投稿文規則を適用しない。",
+      "severity": "投稿文の推敲方針であり、コードレビューの重大度を変更しない。",
+      "confidence": "高",
+      "existing_rule": "references/github-posting-rules.md の関連資料、調査資料の例外、発見のきっかけの例外",
+      "decision": "採用。既存の関連資料の規則と二つの例外を置き換えて統合する。",
+      "evidence": [
+        "2026-09-06T12:31:06.562Z の call_4eLjbEEDyrnr1UVDyvf5XbwM に、投稿済みの初稿を取得した結果がある。通知の目的と対象の二文、実装変更の四項目、別リポジトリの PR を観測例として示すリンクが含まれていた。",
+        "2026-09-06T13:14:15.638Z にユーザーが、作業一覧は不要であることと、観測例への Issue/PR リンクが相手には不要な情報になるため相手視点で有用性を判断することを明示した。",
+        "2026-09-06T13:14:22.246Z の call_q3tsj8NOOmjAPGKLMxklsOd8 に、ユーザーが編集した投稿済み本文がある。目的と対象の二文だけが残り、四項目と関連 PR の紹介・リンクは削除され、タイトルは変わっていない。"
+      ]
+    },
+    {
+      "id": "record_event_identifier_provenance",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "正しさ、仕様との一致",
+        "境界条件",
+        "テスト自体の妥当性"
+      ],
+      "scope": "現在レコードと履歴イベントを識別子で結び付ける処理",
+      "condition": "別表現の同じ出来事を判定や通知の根拠へ渡す変更",
+      "check": "ID の生成元と意味を確認し、生成側の全経路から消費側まで対応を追う。",
+      "action": "異なるオブジェクト ID を同一視してイベントを見落とすとき、対応するイベントを根拠へ伝える修正を求める。",
+      "risk": "新しい依頼でも通知済み扱いが残り、再通知されない。",
+      "exception": "共通の正規化 ID による一致が保証された場合は指摘しない。",
+      "severity": "実際の見落としによる影響に合わせる。",
+      "confidence": "高",
+      "existing_rule": "SKILL.md の呼び出し元とデータの流れを追う手順",
+      "decision": "見送り。独立比較の問題例と正常例は旧新版とも正しく扱い、専用規則による改善差を確認できなかった。",
+      "evidence": [
+        "再レビューで同じレビュワーへの新規依頼を見落とす条件を調査。2026-09-06T12:49:30.757Z の call_1CEAYKqRRGNzqaZahvMHnd6c には、依頼レコードとタイムラインイベントの ID を分け、通常依頼、修正後の再依頼、複数レビュワーの根拠へイベント ID を渡す修正差分がある。",
+        "2026-09-06T12:56:28.255Z に修正の反映と検証・CI成功が報告され、2026-09-06T13:11:18.031Z の call_RuBYX59fMuzieJ4gFTXmKx3f でマージ済みを確認している。",
+        "同時に追加したテストは後にユーザー指摘で削除された。コード修正の採用と、テスト実装の採否は分けて扱った。"
+      ]
+    },
+    {
+      "id": "actual_worktree_test_policy",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "テストの必要性",
+        "既存コードとの一貫性",
+        "レビューの具体性と重大度"
+      ],
+      "scope": "作業先方針がある変更のテスト追加・削除と追加要否のレビュー",
+      "condition": "worktree で作成された差分を最終レビューするとき",
+      "check": "実作業先の AGENTS.md を読み、テストと実行設定を含む差分を自身で照合する。",
+      "action": "元リポジトリの方針や委任先の成功報告で代用せず、有効な方針への違反を報告する。",
+      "risk": "別作業先の許可を根拠に、現在の作業先が禁止するテストを承認する。",
+      "exception": "新規テスト禁止から既存評価の実行や仕様追従まで禁止されているとは推論しない。明示されたユーザー指示を優先する。",
+      "severity": "方針違反として説明し、実行時不具合と混同しない。",
+      "confidence": "高",
+      "existing_rule": "references/session-derived-rules.md のテストを所有レイヤーで確認する規則",
+      "decision": "見送り。作業先方針の違反と適用範囲外のケースを旧新版とも正しく扱い、改善差を確認できなかった。",
+      "evidence": [
+        "2026-09-06T12:58:48.555Z にユーザーが、テスト実装禁止なのになぜ実装したのか指摘した。",
+        "2026-09-06T12:59:10.598Z の call_T5bEfrx8PWRNsBX8LWGFoLxp で、元リポジトリの例外付き禁止と、作業先の全面禁止の違いを確認した。",
+        "2026-09-06T13:00:18.038Z にユーザーが、委任先のコンテキストのずれを含めて親が判断する責任を明示し、今回実装したテストの削除を依頼した。",
+        "2026-09-06T13:05:24.491Z の call_2JlBeqcHcUL4dDpGQQnoKqGD と同13:06:21.878Z の call_v9tdLwrhmRheSirMDYUjiZsR で、追加したテスト三ファイルと実行設定を削除した結果を確認した。既存評価の仕様追従は残り、CI成功後にマージされた。"
+      ]
+    }
+  ],
+  "other_exclusions": [
+    {
+      "candidate": "作業一覧を PR 本文へ載せない",
+      "reason": "ユーザーによる削除は確認できたが、差分から明らかな実装説明を省く既存規則に含まれる。今回は評価ケースだけで補強する。"
+    },
+    {
+      "candidate": "PR タイトルの形式",
+      "reason": "ユーザーがタイトルを書き直していないため、投稿文の新規規則の根拠にしない。"
+    },
+    {
+      "candidate": "理念に一時的な関心事を混ぜない",
+      "reason": "実装前の設計・調査のやりとりであり、コードレビューの規則として取り込まない。"
+    },
+    {
+      "candidate": "不具合修正なら回帰テストを追加する",
+      "reason": "最終的にテスト実装が撤回され、追加ファイルと実行設定も削除された。"
+    },
+    {
+      "candidate": "通知条件、AI、Discord 文字数上限の一般規則",
+      "reason": "個別実装や調査の内容から、根拠のない全プロジェクト共通の方針へ拡張しない。"
+    }
+  ],
+  "evaluation_method": {
+    "comparison": "旧版と三候補を含む試作版を、セッション分析と正解を渡さない別々のエージェントで各20ケース実行した。実回答を既存形式の assertions に対して親が意味で判定した。",
+    "initial_baseline": {
+      "passed": 19,
+      "total": 20
+    },
+    "initial_candidate": {
+      "passed": 20,
+      "total": 20
+    },
+    "improved_case": "pr_needed_reason_without_recipient_benefit",
+    "improvement": "旧版は判断理由の根拠として、相手に有用でない PR のリンクを残した。試作版は必要な運用事実と変更方針を残してリンクを省いた。",
+    "selection": "改善差のない ID 対応と作業先方針の変更を戻し、リンク規則だけの最終版で関連する14ケースを別エージェントに再実行させた。",
+    "limitations": [
+      "各版一回の評価であり、改善の統計的な再現率は測っていない。",
+      "作業先方針の試作評価では AGENTS.md と変更一覧を提示した。実プロダクションコードは提示せず、実コードの差分全体の照合は評価していない。",
+      "GitHub の投稿や被参照通知の実発生は検証していない。文章内の参照選択を評価した。",
+      "既存の明示起動 policy は変更せず、通常レビューとセッション改善の振り分けは20ケース中の一件で確認した。"
+    ],
+    "final_comparison": {
+      "baseline": {
+        "passed": 13,
+        "total": 14
+      },
+      "final": {
+        "passed": 14,
+        "total": 14
+      },
+      "regressions": 0
+    }
+  },
+  "validation": {
+    "quick_validate": "成功",
+    "natural_japanese": "変更前から存在する文長の均質さの警告一件のみ。周囲と同じ規則形式を保つため残した。",
+    "typecheck": "pnpm typecheck 成功",
+    "lint": "pnpm lint は最初にメモリ上限、上限を増やした実行は他の worktree の生成物を含めて失敗。pnpm lint --ignore-pattern hiho_git_worktrees/** は成功。対象リポジトリのコードや設定は変更していない。"
+  },
+  "answers": {
+    "baseline": [
+      {
+        "id": "streaming_resampler_lookahead",
+        "answer": "1. 修正推奨 — `first_wave = next(stream)` と後続のループで、不要な一要素先読みが入っています。最初のチャンクの処理が次のチャンクの取得まで遅れ、リアルタイム API の応答開始に入力生成一回分の待ちが加わります。同じ構造により、空ストリームでも `next(stream)` が失敗します。入力型と既定値から dtype は float32 に決まるため、先頭要素を取得せず初期化し、各チャンクを取得直後に処理してください。終端では float32 の空配列を `last=True` で渡せます。この空入力によるフラッシュは、公開文書の保証ではなく、提示された python-soxr 1.1.0 の実装で確認できる挙動です。空配列を終端通知に使う意図は短い NOTE コメントで示すと読み取れます。"
+      },
+      {
+        "id": "required_final_nonempty_chunk",
+        "answer": "指摘はありません。最後の非空チャンクへ `finish=True` を付ける契約上、先読みが必要です。初期化にも最初のチャンクの情報が必要で、非空入力も保証されています。"
+      },
+      {
+        "id": "test_layer_and_tracked_issue",
+        "answer": "指摘はありません。変更された後処理の挙動は所有層の単体テストで検証されており、既存の責務分担に沿っています。正数検証と別 Issue の対象経路も変更されないため、今回の PR に追加対応を求める根拠はありません。"
+      },
+      {
+        "id": "pr_title_conventional_commit",
+        "answer": "ci: main 更新時に macOS・Windows の生成物を固定の開発版 Release へ公開する"
+      },
+      {
+        "id": "pr_body_omit_diff_and_command_inventory",
+        "answer": "## 概要\n\nmain ブランチへの push 時に macOS・Windows 向けの生成物を開発版 Release へ公開し、常に同じ Release から最新版を取得できるようにします。"
+      },
+      {
+        "id": "closed_union_mapping_array",
+        "answer": "1. 任意 — `readonly [NotificationTimeReasonCode, WaitClass][]` の対応表では、union へ理由を追加しても対応漏れを型検査で検出できません。追加された理由が semantic validation に届いた時点で例外になるため、`satisfies Readonly<Record<NotificationTimeReasonCode, WaitClass>>` を使い、対応表の網羅性を型で検証する形がよいです。現在の八つの対応は正しいため、現行の誤動作としての指摘ではありません。"
+      },
+      {
+        "id": "closed_union_mapping_record",
+        "answer": "指摘はありません。現在の対応が正しく、union の追加時にも対応漏れを型検査で検出できます。"
+      },
+      {
+        "id": "pr_body_same_symptom_unrelated_issue",
+        "answer": "## 内容\n\nプレビュー生成ジョブが GitHub のチェック一覧の2ページ目以降にあっても、ブランチのプレビューを一覧へ掲載できるようにします。\n\n## その他\n\nエディタの main ブランチがプレビュー一覧から消えていることに気づいたのが、修正のきっかけです。"
+      },
+      {
+        "id": "pr_body_same_symptom_direct_issue",
+        "answer": "## 内容\n\nGitHub のチェックが31件以上あるコミットでも、ブランチのプレビューを一覧へ掲載できるようにします。\n\n## 関連 Issue\n\nCloses #61"
+      },
+      {
+        "id": "pr_progress_comment_decisions_only",
+        "answer": "- ボタン系の操作感を揃えるため、有効なメニュー系ロールも指カーソルにしてみました。\n- 自動適用されて開発者が意識する必要がないため、コーディング規約への追記は削除しました。"
+      },
+      {
+        "id": "pr_observed_external_example_backlink",
+        "answer": "## 内容\n\n通知の目的を、必要な仕事の停滞を見つけて着手や再開を促すこととして明文化します。担当者本人の作業停止と、他の人の応答待ちを対象にします。\n\nレビュー担当者の確認待ちが作業担当者の選定待ちと表示され、誰の対応を待っているかが伝わりにくくなっていました。待ち状態に応じて表示を分け、必要な対応が分かるようにします。"
+      },
+      {
+        "id": "pr_needed_reason_without_recipient_benefit",
+        "answer": "対象サービスでは、[運用についての会話](https://github.com/example/service/pull/782)で確認したとおり、担当者が長期間コメントしなくても作業を継続します。この運用に合わせ、監視ツールはコメントがないことだけを理由に再通知しないようにします。"
+      },
+      {
+        "id": "pr_link_for_resolved_issue",
+        "answer": "同じ待ち状態のままコメントしても再通知されないよう、同じ待ち期間の通知済み扱いを維持します。通知後に待ち状態を変えずにコメントし、再通知されないことで修正を確認できます。\n\nCloses https://github.com/example/monitor/issues/48"
+      },
+      {
+        "id": "review_evidence_link_outside_posting_rule",
+        "answer": "ここで空配列を渡すと、固定版 4.2.0 は入力を拒否するため、終了処理が失敗します。[公式の契約説明](https://github.com/example/encoder/issues/19#issuecomment-1234)では、最後の非空要素と同時に `finish=true` を渡す必要があります。最後の要素を保持し、その要素を渡す呼び出しで終了してください。"
+      },
+      {
+        "id": "worktree_test_addition_policy",
+        "answer": "1. 修正必須 — 新規の `src/notifications.test.ts` と `package.json` のテスト実行追加が、作業先の `worktree/AGENTS.md` にある「この作業先では新しいテストを実装しない」に反しています。元リポジトリの許可や不具合修正の依頼を根拠に、作業先の禁止を解除することはできません。新規テストとその実行追加を取り除いてください。既存評価の仕様変更への追従と実行は許可されています。\n\n実コードは提示されていないため、通知済み判定の正しさと確認成功については成果報告の範囲で判断しています。"
+      },
+      {
+        "id": "existing_evaluation_update_not_new_test",
+        "answer": "指摘はありません。既存評価のスキーマと期待値を仕様変更へ合わせる変更であり、明示的に許可された範囲です。新規テストの追加には当たりません。"
+      },
+      {
+        "id": "test_addition_allowed_by_local_policy",
+        "answer": "指摘はありません。再配信で残高が二重に変化しないことを所有層の単体テストで確認しており、作業先の方針に沿っています。既存テストとの検証条件の重複もありません。"
+      },
+      {
+        "id": "record_event_identifiers_in_renewal",
+        "answer": "1. 修正必須 — 通知済み扱いの解除処理にある `decision.evidenceIds.includes(event.id)` は、依頼追加イベントを特定できません。通常経路が入れる Request の ID と履歴の TimelineEvent の ID は別物で、再依頼経路のコミット ID もイベント ID ではありません。そのため、新しい依頼があってもイベントが見つからず、通知済み扱いが解除されません。また、複数人の経路では最初以外の依頼が判定対象から抜けます。対象ユーザーの ID と依頼時刻から対応する依頼追加イベントを特定するなどして、通常・再依頼・複数人の全経路で対象となる全依頼のイベントを追える形にしてください。既存テストは実際には異なる ID を同じ文字列にしているため、この契約不一致を検出できていません。"
+      },
+      {
+        "id": "canonical_event_identifiers_in_renewal",
+        "answer": "指摘はありません。同じ依頼の ID が共通値へ正規化され、全経路で対象となる全依頼の ID を含める契約なので、イベントとの照合が成立しています。"
+      },
+      {
+        "id": "review_skill_routing_explicit_and_analysis",
+        "answer": "- A は `refined-review-hiho` の使用が必須です。明示的に指定されており、PR 差分のレビューは対象範囲です。\n- B は `refine-code-review-skill-from-session` の使用が必須です。明示的に指定されており、過去レビューセッションを分析してスキルを改善する依頼です。`refined-review-hiho` はセッション分析を対象にしていません。"
+      }
+    ],
+    "candidate": [
+      {
+        "id": "streaming_resampler_lookahead",
+        "answer": "修正推奨 — `next(stream)` と直前のチャンクを保持するループ: 最初のチャンクを処理する前に次の入力を取得するため、出力開始が入力生成一回分遅れます。空入力では `next(stream)` も失敗します。dtype は入力型と既定値で float32 に決まっているため、先頭要素から取得する必要はありません。\n\n各チャンクを取得直後に処理し、最後に float32 の空配列と `last=True` でフラッシュする形を推奨します。空配列を使える根拠は、提示された python-soxr 1.1.0 の固定版実装です。公開文書が保証する最終チャンクでのフラッシュとは区別してください。空配列の意図には「最後の出力を空配列でフラッシュする」程度の短い NOTE があると伝わります。"
+      },
+      {
+        "id": "required_final_nonempty_chunk",
+        "answer": "指摘はありません。最後の非空チャンクへ `finish=True` を渡す契約上、直前のチャンクを保持する必要があります。最初のチャンクから設定を取得する処理も必要で、非空入力は呼び出し元が保証しています。"
+      },
+      {
+        "id": "test_layer_and_tracked_issue",
+        "answer": "指摘はありません。変更された後処理は、その挙動を担当する単体テストで検証されています。既存の責務分担では同じ条件の API E2E 追加は不要です。ゼロ以下の値の問題も、今回変更しない経路のため指摘対象にはなりません。"
+      },
+      {
+        "id": "pr_title_conventional_commit",
+        "answer": "ci: macOS と Windows の開発版 Release 公開を自動化"
+      },
+      {
+        "id": "pr_body_omit_diff_and_command_inventory",
+        "answer": "## 概要\n\nmain ブランチへの push 時に macOS と Windows 向けの生成物を固定名の開発版 Release へ公開し、常に同じ Release から最新版を取得できるようにします。"
+      },
+      {
+        "id": "closed_union_mapping_array",
+        "answer": "任意 — 対応表の配列と `find`: `NotificationTimeReasonCode` に要素を追加しても対応漏れを型検査で検出できず、その理由を semantic validation に渡すまで不足が分かりません。`satisfies Readonly<Record<NotificationTimeReasonCode, WaitClass>>` で網羅性を検査する対応表への変更は、弱い推奨です。現在の八つは正しく対応しており、現時点の誤動作ではありません。"
+      },
+      {
+        "id": "closed_union_mapping_record",
+        "answer": "指摘はありません。現在の全要素が正しく対応し、理由の追加時にも対応漏れを型検査で検出できます。"
+      },
+      {
+        "id": "pr_body_same_symptom_unrelated_issue",
+        "answer": "## 内容\n\n有効な成果物があるブランチのプレビューが一覧から漏れる問題を修正します。\n\n## その他\n\nエディタの main ブランチがプレビュー一覧から消えていることに気づいたのがきっかけです。"
+      },
+      {
+        "id": "pr_body_same_symptom_direct_issue",
+        "answer": "## 内容\n\nチェック数が多いコミットで、ブランチのプレビューが一覧から漏れる問題を修正します。\n\n## 関連 Issue\n\nCloses #61"
+      },
+      {
+        "id": "pr_progress_comment_decisions_only",
+        "answer": "- ボタン系の操作感と揃えるため、有効なメニュー系ロールも指カーソルにしてみました。\n- 自動適用されて開発者が意識する必要がないため、コーディング規約への追記を削除しました。"
+      },
+      {
+        "id": "pr_observed_external_example_backlink",
+        "answer": "## 内容\n\n通知の目的を、必要な仕事の停滞を見つけて着手や再開を促すこととして明文化します。担当者本人の作業停止と、他の人の応答待ちを対象にします。"
+      },
+      {
+        "id": "pr_needed_reason_without_recipient_benefit",
+        "answer": "対象サービスでは、担当者が長期間コメントしなくても作業を継続します。\nこのため、コメントがないことだけを理由に再通知しないようにし、進行中の作業への不要な通知を防ぎます。"
+      },
+      {
+        "id": "pr_link_for_resolved_issue",
+        "answer": "同じ待ち状態の間にコメントしても通知済みの扱いを維持し、再通知を防ぐようにします。\n\nCloses https://github.com/example/monitor/issues/48"
+      },
+      {
+        "id": "review_evidence_link_outside_posting_rule",
+        "answer": "この終了処理は空配列を渡すため、固定版 4.2.0 では入力を拒否され、正常に終了できません。[公式の契約説明](https://github.com/example/encoder/issues/19#issuecomment-1234)に従い、最後の非空要素と同時に `finish=true` を渡す形に変更してください。"
+      },
+      {
+        "id": "worktree_test_addition_policy",
+        "answer": "方針違反・必須 — `src/notifications.test.ts` の新規追加と `package.json` の実行追加: 作業先の `AGENTS.md` は「この作業先では新しいテストを実装しない」と定めています。「通知の不具合を修正してください」はテスト実装の明示依頼ではないため、新規テストとその実行設定を除く必要があります。元リポジトリの方針や実行成功の報告では、この違反は解消しません。これは実行時の不具合とは別の指摘です。\n\n調査上の制約: 変更一覧にある実コード、テスト、`package.json` が提示先に存在せず、差分全体の照合はできませんでした。上記は変更一覧と成果報告、および実際の作業先の `AGENTS.md` に基づきます。"
+      },
+      {
+        "id": "existing_evaluation_update_not_new_test",
+        "answer": "指摘はありません。既存評価のスキーマと期待値を仕様へ追従させる変更であり、この作業先が禁止する新規テストの実装には該当しません。"
+      },
+      {
+        "id": "test_addition_allowed_by_local_policy",
+        "answer": "指摘はありません。追加テストは作業先の方針に沿い、変更された挙動の所有層で二重更新の防止を検証しています。既存テストとの重複もありません。"
+      },
+      {
+        "id": "record_event_identifiers_in_renewal",
+        "answer": "修正必須 — 解除処理の `decision.evidenceIds.includes(event.id)`: 通常経路が渡す Request ID と再依頼経路が渡す headCommit ID は、照合先の TimelineEvent ID と一致しません。そのため新しい依頼追加を選べず、同じ担当者への再依頼でも通知済みの扱いが残ります。複数人では最初の依頼しか根拠に含めないため、他の対象者の追加も判定できません。\n\n対象ユーザー ID と依頼時刻から対応する `request_added` イベントを特定し、通常・再依頼・複数人の全経路で対象の全イベントを根拠へ渡してください。同じ文字列を手動で与えた単体テストの成功は、実データでの対応を保証しません。"
+      },
+      {
+        "id": "canonical_event_identifiers_in_renewal",
+        "answer": "指摘はありません。共通の `RequestOccurrenceId` による一致が公開契約で保証され、全経路で対象の全依頼が根拠に含まれています。"
+      },
+      {
+        "id": "review_skill_routing_explicit_and_analysis",
+        "answer": "- A は `refined-review-hiho` を使います。明示指定があり、通常の PR 差分レビューがこのスキルの対象です。\n- B は `refine-code-review-skill-from-session` を使います。明示指定があり、過去レビューセッションを分析してスキルを改善する依頼です。`refined-review-hiho` はセッション分析には使いません。"
+      }
+    ],
+    "final": [
+      {
+        "id": "streaming_resampler_lookahead",
+        "answer": "修正推奨 — `resample_stream` の冒頭の `next(stream)` と一要素先読み\n\n次の入力を取得してから保持中のチャンクを処理するため、入力生成が遅いと最初の出力も一チャンク分待たされます。空入力でも冒頭の `next(stream)` が例外になります。入力型と既定値が float32 なので、初期化のために先頭を取り出す必要はありません。各チャンクを受け取り次第処理し、終了時に float32 の空配列を `last=True` で渡す形を推奨します。空配列によるフラッシュは公開文書の保証ではなく、固定版 1.1.0 の実装で確認された挙動です。空入力が終端処理用であることを短い NOTE コメントで示してください。"
+      },
+      {
+        "id": "required_final_nonempty_chunk",
+        "answer": "指摘はありません。最後の非空チャンクへ `finish=True` を渡す契約上、この先読みは必要です。初期化にも先頭チャンクの情報が必要で、空入力は呼び出し元の保証により除外されています。"
+      },
+      {
+        "id": "test_layer_and_tracked_issue",
+        "answer": "指摘はありません。追加された挙動は所有する後処理層の単体テストで検証されており、既存の責務分担からも API E2E の追加は不要です。ゼロ以下の値の経路は今回変更されず、別 Issue の問題を悪化させる情報もありません。"
+      },
+      {
+        "id": "pr_title_conventional_commit",
+        "answer": "ci: macOS と Windows の生成物を開発版 Release へ継続公開"
+      },
+      {
+        "id": "pr_body_omit_diff_and_command_inventory",
+        "answer": "main ブランチへの push ごとに macOS と Windows 向けの生成物を公開し、常に同じ開発版 Release から最新版を取得できるようにします。"
+      },
+      {
+        "id": "closed_union_mapping_array",
+        "answer": "任意 — `NotificationTimeReasonCode` から `WaitClass` への対応表\n\n現在の八要素は正しく対応していますが、union に理由を追加して配列の更新を忘れても型検査が通り、新しい理由の semantic validation 時に例外になります。追加漏れを型検査で検出できるよう、`satisfies Readonly<Record<NotificationTimeReasonCode, WaitClass>>` を使う対応表への変更を弱く推奨します。"
+      },
+      {
+        "id": "closed_union_mapping_record",
+        "answer": "指摘はありません。現在の対応が正しく、union への追加に伴う対応漏れも型検査で検出できます。"
+      },
+      {
+        "id": "pr_body_same_symptom_unrelated_issue",
+        "answer": "## 内容\n\nプレビュー生成ジョブの見落としにより、有効な成果物のあるブランチがプレビュー一覧に掲載されない問題を修正します。\n\n## その他\n\nエディタの main ブランチがプレビュー一覧から消えていることに気づいたのがきっかけです。"
+      },
+      {
+        "id": "pr_body_same_symptom_direct_issue",
+        "answer": "## 内容\n\nプレビュー生成ジョブの見落としにより、ブランチのプレビューが一覧から消える問題を修正します。\n\n## 関連 Issue\n\nCloses #61"
+      },
+      {
+        "id": "pr_progress_comment_decisions_only",
+        "answer": "- ボタン系の操作感を揃えるため、有効なメニュー系ロールも指カーソルにしてみました。\n- 自動適用され、開発者が意識する必要がないため、コーディング規約への追記は外しました。"
+      },
+      {
+        "id": "pr_observed_external_example_backlink",
+        "answer": "必要な仕事の停滞を見つけて着手や再開を促せるよう、通知の目的と対象を明文化します。対象は、担当者本人の作業停止と、他の人の応答待ちです。"
+      },
+      {
+        "id": "pr_needed_reason_without_recipient_benefit",
+        "answer": "対象サービスでは、担当者が長期間コメントしなくても作業を継続します。\nそのため、コメントがないことだけを理由に再通知しないよう、監視ツールの通知対象を見直します。"
+      },
+      {
+        "id": "pr_link_for_resolved_issue",
+        "answer": "同じ待ち状態のままコメントしても、同じ待ち期間の通知済み扱いを維持し、再通知されないようにします。\n\nCloses https://github.com/example/monitor/issues/48"
+      },
+      {
+        "id": "review_evidence_link_outside_posting_rule",
+        "answer": "終了処理で空配列を渡すと、固定版 4.2.0 は空入力を拒否するため、正常に終了できません。[公式の契約説明](https://github.com/example/encoder/issues/19#issuecomment-1234)に従い、最後の非空要素と同時に `finish=true` を渡してください。"
+      }
+    ]
+  }
+}
