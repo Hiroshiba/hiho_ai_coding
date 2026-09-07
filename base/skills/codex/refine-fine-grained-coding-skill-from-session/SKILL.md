@@ -19,6 +19,9 @@ description: このスキルを明確に利用するよう指示された場合�
 
 対象スキルと関係する既存の参照資料を読み、すでにある判断基準を把握する。
 
+- `~/Github/hiho_ai_coding/base/skills/codex/refined-codedesign-hiho/SKILL.md`
+- セッションログの取得には `Hiroshiba/hiho_scripts` の `get_codex_session_jsonl_paths.py` を使用する。詳細は `hiho_get_codex_session_jsonl_paths -h` を実行する。
+
 対象セッションでは、指摘文だけでなく、元の依頼、Codex が提案・実施した変更、ユーザーの指摘、その後の修正と結果を関連づけて読む。何が不足し、何を知っていればその指摘を防げたかを調べる。
 
 必要に応じて、ログで参照された既存コード、類似実装、呼び出し元・呼び出し先、テスト、関連ドキュメントを確認する。調査範囲は指摘の解釈に必要な範囲に絞る。
