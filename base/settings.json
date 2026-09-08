@@ -234,6 +234,5 @@
   "language": "日本語",
   "effortLevel": "xhigh",
   "autoMemoryEnabled": false,
-  "teammateMode": "tmux",
   "tui": "fullscreen"
 }
