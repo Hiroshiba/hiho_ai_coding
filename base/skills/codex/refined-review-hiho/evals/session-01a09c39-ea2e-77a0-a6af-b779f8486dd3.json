@@ -1,0 +1,181 @@
+{
+  "session_id": "01a09c39-ea2e-77a0-a6af-b779f8486dd3",
+  "skill_name": "refined-review-hiho",
+  "source_log": "/home/hihok/.codex/sessions/2026/09/14/rollout-2026-09-14T04-23-56-01a09c39-ea2e-77a0-a6af-b779f8486dd3.jsonl",
+  "related_logs": [
+    "/home/hihok/.codex/sessions/2026/09/12/rollout-2026-09-12T19-53-30-01a09540-3d4a-7712-a242-d8544954d62f.jsonl",
+    "/home/hihok/.codex/sessions/2026/09/12/rollout-2026-09-12T19-31-39-01a0952c-3e18-7d61-a2c8-cedcae6d1e8f.jsonl",
+    "/home/hihok/.codex/sessions/2026/09/12/rollout-2026-09-12T19-11-47-01a0951a-0d1a-7150-98fd-4b483cd46cd0.jsonl",
+    "/home/hihok/.codex/sessions/2026/09/12/rollout-2026-09-12T17-32-31-01a094bf-2a14-7e01-b002-84cb960d6d3a.jsonl",
+    "/home/hihok/.codex/sessions/2026/09/12/rollout-2026-09-12T16-59-46-01a094a1-306c-7051-81ad-e636abc2d483.jsonl"
+  ],
+  "workflow": "公式 skill-creator の既存スキル更新フローに従い、現行規則との重複確認、独立エージェントによる動作評価、quick_validate を使用した。評価で現行版が全ケースに合格したため、指示本文は変更せず評価資源だけを追加した。",
+  "review_cases": [
+    {
+      "id": "numeric_range_review",
+      "outcome": "volumeScale の非負制約だけが採用され、ほかの境界候補は今回の例外または対象外になった。",
+      "decision": "既存の session-01a094bf-2a14-7e01-b002-84cb960d6d3a.json と値域制約の規則で反映済み。重複して追加しない。"
+    },
+    {
+      "id": "test_boundary_claim",
+      "outcome": "Codex はモデル直接テストが方針に即すると評価したが、ユーザーの問い直し後に方針本文と既存例を確認し、方針は特定の境界を指定していないとして指摘を撤回した。",
+      "decision": "現行のテストを所有レイヤーで確認する規則が、方針、既存の責務分担、追加テストが検証する条件の確認を既に求めている。評価でも根拠のない境界変更を求めなかったため、規則を追加しない。"
+    },
+    {
+      "id": "field_validation_hypothesis",
+      "outcome": "ユーザーは Field が下流への契約を保証する場合に単一フィールドの負例を書かないという線引きを、仮定として提示した。Codex はその仮定を適用した場合の対象を分類したが、採用するという後続回答はない。",
+      "decision": "確定したプロジェクト方針として反映しない。明示的に同じ方針が与えられた場合だけ適用できることを評価ケースで確認する。"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "do_not_infer_test_boundary_from_implementation_location",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "テストの必要性とテスト自体の妥当性",
+        "コーディングスタイルと既存コードとの一貫性",
+        "レビューコメントの具体性、理由、重大度"
+      ],
+      "scope": "テストの検証境界を評価するレビュー",
+      "condition": "検証処理の実装位置と、テストが観測する境界が異なる場合",
+      "check": "テスト方針が特定の境界を指定しているか、同種の既存テストがどの境界を使うか、各候補が異なる約束を検出するかを確認する。",
+      "action": "実装位置だけを理由にテストを直接テストへ移すよう求めない。",
+      "risk": "方針にない境界を必須と断定し、既存方針に沿うテストへ誤った修正を求める。",
+      "exception": "方針が境界を明示する場合や、現在の境界では重要な経路を観測できない場合は、その具体的な不足を指摘する。",
+      "severity": "境界選択だけの改善は原則として任意。公開契約の未検証や明示方針違反は具体的な影響に合わせる。",
+      "confidence": "高",
+      "existing_rule": "references/session-derived-rules.md のテストを所有レイヤーで確認する規則",
+      "decision": "見送り。現行規則が必要な確認を既に求め、独立評価でも問題例、正常例、適用範囲外を四件すべて正しく区別した。",
+      "evidence": [
+        "2026-09-12T10:37:20.566Z にユーザーが、モデル境界で確認すべきという根拠が方針のどこにあるかを問い直した。",
+        "2026-09-12T10:39:51.439Z に Codex が、方針はモデル直接テストを指定せず、既存コードにもモデル直接テストと API テストの両方があるため、境界変更の指摘を撤回した。",
+        "2026-09-12T10:58:04.268Z の既存コード調査では、複数フィールドの列挙と代表フィールドだけの確認の両方があり、現在の全フィールド検証を減らす根拠にはならないと整理した。"
+      ]
+    },
+    {
+      "id": "exclude_framework_only_negative_tests",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "テストの必要性とテスト自体の妥当性"
+      ],
+      "scope": "Pydantic や FastAPI の宣言的検証を使うテスト",
+      "condition": "Field が下流へ渡す値の契約を保証し、単一フィールドの不正値がハンドラへ到達しない場合",
+      "check": "プロジェクトが宣言的検証だけの負例をテスト対象外とする方針を採用しているか確認する。",
+      "action": "方針が明示されている場合だけ、宣言的検証だけを再確認する負例の削除を求める。",
+      "risk": "仮定上の線引きを確定方針として一般化すると、公開 API のエラー契約を確認する既存方針と衝突する。",
+      "exception": "正常系、複数項目の組み合わせ、独自検証、Field 通過後の処理を確認するテストには適用しない。",
+      "severity": "明示方針がある場合も原則として任意。プロダクションコードの欠陥とは扱わない。",
+      "confidence": "低",
+      "existing_rule": "references/session-derived-rules.md のテストを所有レイヤーで確認する規則",
+      "decision": "見送り。ユーザーは仮定として提示しており、プロジェクト方針への最終的な採用を確認できない。現行規則は、同じ方針が明示された評価ケースでは正しく適用した。",
+      "evidence": [
+        "2026-09-13T17:03:43.095Z にユーザーが、Field の契約だけで拒否する負例を省く線引きを仮定として提示した。",
+        "2026-09-13T17:12:52.432Z に Codex が、その線引きを採用した場合の PR 内と既存のテストを分類した。",
+        "分類後にユーザーが線引きの採用を確定した発言や、テストを修正した結果は対象ログにない。"
+      ]
+    },
+    {
+      "id": "separate_field_value_and_api_coverage_axes",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "テストの必要性とテスト自体の妥当性"
+      ],
+      "scope": "複数フィールドや複数 API を扱う入力検証テスト",
+      "condition": "テストの網羅性または重複を評価する場合",
+      "check": "フィールド、値、API 入口の各軸を分け、各ケースが別の追加漏れや経路を検出するか確認する。",
+      "action": "独立した制約の追加漏れを検出するフィールド列挙と、同じモデルを通る全 API での反復を区別する。",
+      "risk": "網羅性の異なる軸を混同し、必要なケースを重複として削除したり、同じ経路の反復を必要と判断したりする。",
+      "exception": "プロジェクト方針が対象軸を明示する場合は、その方針を優先する。",
+      "severity": "テスト構成だけの問題は原則として任意。",
+      "confidence": "中",
+      "existing_rule": "references/session-derived-rules.md のテストを所有レイヤーで確認する規則",
+      "decision": "見送り。整理は Codex の最終回答だけにあり、ユーザーによる採用や修正結果を確認できない。現行規則は独立評価で各軸の問題例と正常例を既に区別した。",
+      "evidence": [
+        "2026-09-12T10:53:52.399Z にユーザーが、同じフィールドへ多数の値を入れる軸を除外し、複数フィールドの列挙だけを調べるよう指定した。",
+        "2026-09-12T10:58:04.268Z に Codex が、既存テストには全フィールド列挙と代表フィールド確認の両方があると報告した。",
+        "この報告後にユーザーが規則として採用した発言は対象ログにない。"
+      ]
+    }
+  ],
+  "other_exclusions": [
+    {
+      "candidate": "volumeScale の非負制約と重大度",
+      "reason": "祖先セッションの既存評価ファイルと、値域制約の対象項目を意味ごとに照合する規則へ反映済みである。"
+    },
+    {
+      "candidate": "segment_length、子音と子音長、非有限値、サンプリングレート上限、アクセント上限の指摘",
+      "reason": "ユーザーが今回の例外または対象外とし、再利用可能な正の規則としては既存評価ですでに除外されている。"
+    },
+    {
+      "candidate": "境界値の有効側と無効側を必ず同じテストで確認する",
+      "reason": "Codex の評価だけで、ユーザーの採用や最終的なテスト変更を確認できない。既存テストで確認済みなら重ねないという例外も示されている。"
+    },
+    {
+      "candidate": "辞書ループを pytest.mark.parametrize へ必ず変更する",
+      "reason": "Codex が一般論として提案しただけで、ユーザーの採用やプロジェクト方針を確認できない。"
+    }
+  ],
+  "evaluation_method": {
+    "comparison": "現行版を、セッション分析、期待する指摘、assertions を渡さない独立エージェントで四ケース実行した。親が実回答を追加した cases.json の assertions に対して意味で判定した。",
+    "baseline": {
+      "passed": 4,
+      "total": 4
+    },
+    "candidate": "反映条件を満たす新規則がなく、現行版が全ケースに合格したため作成しなかった。",
+    "improvement": "改善差を示せないため指示本文を変更しなかった。",
+    "case_ids": [
+      "declarative_constraints_representative_api",
+      "declarative_constraint_repeated_all_apis",
+      "cross_field_contract_missing_api_test",
+      "explicit_policy_excludes_field_negative_tests"
+    ],
+    "results": [
+      {
+        "id": "declarative_constraints_representative_api",
+        "result": "合格。方針がモデル直接テストを指定せず、各フィールドの独立制約と代表 API を確認しているため指摘なしとした。"
+      },
+      {
+        "id": "declarative_constraint_repeated_all_apis",
+        "result": "合格。同じモデル生成経路を通る十二件の重複を任意として指摘し、代表 API 一件へ絞る修正方向を示した。"
+      },
+      {
+        "id": "cross_field_contract_missing_api_test",
+        "result": "合格。明示方針と未検証の組み立て、422 変換経路を根拠に代表 API のテストを求めた。"
+      },
+      {
+        "id": "explicit_policy_excludes_field_negative_tests",
+        "result": "合格。Field 単独の負例だけを任意で削除するよう求め、複数項目の独自検証は残した。"
+      }
+    ],
+    "regression": "指示本文と参照規則を変更していないため、既存ケースに対する動作変更はない。",
+    "limitations": [
+      "各ケース一回の評価であり、統計的な再現率は測っていない。",
+      "評価は提示資料だけを使う合成ケースで、実際の API や GitHub 投稿は実行していない。",
+      "仮定として示されたテスト方針の最終採否は対象ログで確認できない。"
+    ]
+  },
+  "validation": {
+    "quick_validate": "成功",
+    "cases_json": "jq による構文検証に成功。既存 50 ケースへ 4 ケースを追加し、計 54 ケース。",
+    "production_code": "変更なし",
+    "git": "実行なし"
+  },
+  "answers": [
+    {
+      "id": "declarative_constraints_representative_api",
+      "answer": "指摘はありません。"
+    },
+    {
+      "id": "declarative_constraint_repeated_all_apis",
+      "answer": "任意: 追加された十二件は、どれもハンドラへ到達する前に同じモデルの同じ Field で拒否されるため、代表一件以外は新しい経路や契約を検証していません。テスト方針と同種の既存テストに合わせ、代表 API の一件だけを残してください。このままでは同じ仕様を重複して持ち、変更時の更新箇所と E2E の実行時間だけが増えます。"
+    },
+    {
+      "id": "cross_field_contract_missing_api_test",
+      "answer": "修正推奨: モデル単体のテストでは validator 自体しか確認できず、公開 API が二つの値を正しくモデルへ渡し、検証エラーを 422 へ変換する経路は未検証です。このままでは API 側の組み立てやエラー変換に不備があっても検出できません。複数項目の公開契約はモデル単体と代表 API の双方で確認するという方針に従い、無効な組み合わせを代表 API へ送って 422 を確認するテストを追加してください。"
+    },
+    {
+      "id": "explicit_policy_excludes_field_negative_tests",
+      "answer": "任意: 単一 Field が拒否する負値の E2E 六件は、確定済みのテスト方針で対象外とされており、リポジトリ固有の挙動を検証しません。実行時間と将来の更新負担だけが増えるため、この六件は削除してください。二フィールドの組み合わせを確認する独自 validator の E2E はテスト対象なので残します。"
+    }
+  ]
+}

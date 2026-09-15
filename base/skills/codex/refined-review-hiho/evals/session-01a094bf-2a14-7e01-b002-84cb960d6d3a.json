@@ -1,0 +1,220 @@
+{
+  "session_id": "01a094bf-2a14-7e01-b002-84cb960d6d3a",
+  "skill_name": "refined-review-hiho",
+  "source_log": "/home/hihok/.codex/sessions/2026/09/12/rollout-2026-09-12T17-32-31-01a094bf-2a14-7e01-b002-84cb960d6d3a.jsonl",
+  "related_logs": [
+    "/home/hihok/.codex/sessions/2026/09/12/rollout-2026-09-12T16-59-46-01a094a1-306c-7051-81ad-e636abc2d483.jsonl"
+  ],
+  "workflow": "公式 skill-creator の既存スキル更新、独立エージェントによる旧版と新版の動作評価、quick_validate を使用。評価用の実行基盤は新設していない。",
+  "candidates": [
+    {
+      "id": "numeric_range_semantic_sibling_omission",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "正しさ、仕様との一致",
+        "コーディングスタイルと既存コードとの一貫性",
+        "テストの必要性とテスト自体の妥当性",
+        "指摘の重大度または優先順位"
+      ],
+      "scope": "API、設定、保存モデルの数値入力へ値域制約を追加または変更する PR",
+      "condition": "同じ意味の数値項目または同じ値を受け取る複数モデルの一部へ値域制約を追加するとき",
+      "check": "同種の項目と対応モデルを列挙し、ローカルの計算、公開仕様、対応する固定版の契約から値域を照合する。",
+      "action": "値域制約を追加する目的に含まれる意味上の不正値を一部の項目やモデルだけが受理するとき、各入力モデルへ同じ制約を追加し、既存のテスト方針に沿って拒否する値を確認するよう求める。",
+      "risk": "同じ入力を経路によって受理したり、項目の意味に反する結果を生成したりして、変更目的を一部で達成できない。",
+      "exception": "外部コンポーネントとの差だけで指摘せず、ローカルの処理と公開仕様が支える値は許容する。現実的な入力経路または明示契約で到達すると確認できない表現上の極端な上限は求めない。",
+      "severity": "原則として修正推奨。計算が成立して仕様判断だけが残る場合は任意。明示された公開契約違反や具体的な誤動作がある場合だけ修正必須。",
+      "confidence": "高",
+      "existing_rule": "SKILL.md の変更範囲、データの流れ、固定版依存、今回の変更で生じた問題だけを扱う規則",
+      "decision": "採用。session-derived-rules.md に追加し、SKILL.md の参照条件へ数値入力の値域制約を加える。",
+      "evidence": [
+        "2026-09-12T08:25:46.806Z と 2026-09-12T08:26:08.386Z の固定版 CORE 調査で、音量倍率が非負に制限される一方、ローカルでは波形へ乗算され、負値で位相が反転することを確認した。",
+        "2026-09-12T08:32:47.837Z にユーザーが、論理的に不正な部分と変更忘れを再レビューで指摘するよう明示した。",
+        "2026-09-12T08:40:05.608Z の再レビューは、音量倍率の非負制約を AudioQuery と Preset の変更漏れ候補として報告した。",
+        "2026-09-12T09:05:37.312Z にユーザーが、この指摘は間違いないためコメントすると採用し、同時に他の境界候補を今回の例外または対象外とした。",
+        "2026-09-12T09:09:34.485Z の確認では長さと長さ倍率の非負制約を項目群として問い直し、2026-09-12T09:09:54.985Z の回答で音量倍率だけが未追加と整理した。",
+        "2026-09-12T10:11:29.722Z にユーザーが、指摘を GitHub へコメントしたことを報告した。投稿文自体はログにないため、文章の書き方の根拠には使わない。"
+      ]
+    }
+  ],
+  "other_exclusions": [
+    {
+      "candidate": "正でもフレーム換算後に 0 となる分割長へ下限を追加する",
+      "reason": "ユーザーがフレームレートとロジックで条件が変わるため今回だけ許容すると明示した。一時的な採否であり、今後の一般規則にはしない。"
+    },
+    {
+      "candidate": "子音と子音長の有無を常に同時検証する",
+      "reason": "技術的な指摘自体は正しいとされたが、今回の PR では対象外と明示された。変更で発生または悪化しない既存問題を指摘しない規則は既に SKILL.md にあるため、評価ケースだけで補強する。"
+    },
+    {
+      "candidate": "すべての浮動小数点入力で非有限値を拒否し、検証エラー応答も変換する",
+      "reason": "ユーザーが実際には入力されない極端な例として今回の例外にした。全プロジェクト向け規則へ一般化できる採用根拠がない。"
+    },
+    {
+      "candidate": "出力形式の表現上限までサンプリングレートを制限する",
+      "reason": "ユーザーが実際には入力されない極端な例として今回の例外にした。ローカルで到達する入力契約の確認なしに一般化すると誤検出が増える。"
+    },
+    {
+      "candidate": "動的な上限制約をフィールド説明へ必ず書く",
+      "reason": "ユーザーは記載してもよいとしつつ、何を文書化するかの方針が未決定なので今回は指摘しないとした。確定したプロジェクト方針ではない。"
+    },
+    {
+      "candidate": "話速、無音時間、長さ倍率を非負にする",
+      "reason": "対象 PR が既に満たしており、ユーザーの訂正や採用された追加変更ではない。話速だけは除算に使うため 0 より大きい必要があることも既存実装から確認済みだった。"
+    },
+    {
+      "candidate": "GitHub のレビューコメントの文面",
+      "reason": "ユーザーが指摘を投稿したことは確認できたが、実際に投稿した文面と Codex 案からの書き直し箇所がログにない。投稿文規則の根拠にはできない。"
+    },
+    {
+      "candidate": "別件のテスト実装を指定された方針へ照合する",
+      "reason": "セッション末尾で別件として開始されたが、最終回答とユーザーの採否がログにない。レビュー規則として取り込まない。"
+    }
+  ],
+  "evaluation_method": {
+    "comparison": "旧版と新版を、セッション分析、期待する指摘、assertions を渡さない別々の独立エージェントで各 6 ケース実行した。親が実回答を cases.json の assertions に対して意味で判定した。",
+    "baseline": {
+      "passed": 5,
+      "total": 6
+    },
+    "final": {
+      "passed": 6,
+      "total": 6
+    },
+    "improved_case": "numeric_range_semantic_sibling_omission",
+    "improvement": "旧版も音量倍率の変更漏れを検出したが、公開契約違反や計算失敗が確認できないのに修正必須とした。新版は修正推奨に抑え、両モデルへ同じ制約を追加して負値を拒否する修正方向を示した。",
+    "false_positive_cases": [
+      "numeric_range_local_contract_difference",
+      "numeric_range_unchanged_cross_field_issue",
+      "numeric_range_supported_input_ceiling",
+      "dynamic_bound_documented_as_model_contract",
+      "numeric_range_intentional_zero_scale"
+    ],
+    "regression": {
+      "passed": 8,
+      "total": 8,
+      "case_ids": [
+        "streaming_resampler_lookahead",
+        "required_final_nonempty_chunk",
+        "test_layer_and_tracked_issue",
+        "closed_union_mapping_array",
+        "closed_union_mapping_record",
+        "pr_needed_reason_without_recipient_benefit",
+        "review_evidence_link_outside_posting_rule",
+        "routing_review_session_analysis"
+      ],
+      "regressions": 0
+    },
+    "post_adjustment": {
+      "passed": 1,
+      "total": 1,
+      "case_id": "numeric_range_semantic_sibling_omission",
+      "result": "修正推奨として変更漏れを報告し、両モデルの非負制約と負値の 422 テストを求めた。"
+    },
+    "limitations": [
+      "各版一回の評価であり、改善の統計的な再現率は測っていない。",
+      "数値制約の評価は提示資料だけを使う合成ケースであり、実際の API や GitHub 投稿は実行していない。",
+      "ユーザーが投稿したレビューコメントの最終文面はログにないため、投稿文の再現評価は行っていない。",
+      "回帰評価は変更に近い既存規則と投稿文、適用範囲の 8 ケースへ絞った。既存 44 ケースすべての再実行はしていない。"
+    ]
+  },
+  "validation": {
+    "quick_validate": "成功",
+    "cases_json": "jq による構文検証に成功。既存 44 ケースへ 6 ケースを追加し、計 50 ケース。",
+    "production_code": "変更なし",
+    "git": "実行なし"
+  },
+  "answers": {
+    "baseline": [
+      {
+        "id": "numeric_range_semantic_sibling_omission",
+        "answer": "修正必須: AudioQuery と Preset の volumeScale に 0 以上の制約を追加してください。負値を指定すると、意味上不正な入力が 422 にならず、波形の位相が反転します。両モデルへ 0 以上の下限制約を追加し、負値が拒否されることを検証してください。"
+      },
+      {
+        "id": "numeric_range_local_contract_difference",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "numeric_range_unchanged_cross_field_issue",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "numeric_range_supported_input_ceiling",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "dynamic_bound_documented_as_model_contract",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "numeric_range_intentional_zero_scale",
+        "answer": "指摘はありません。"
+      }
+    ],
+    "final": [
+      {
+        "id": "numeric_range_semantic_sibling_omission",
+        "answer": "修正推奨: AudioQuery と Preset の volumeScale に 0 以上の制約を追加してください。負値を渡すと音量調整ではなく波形の位相反転が起き、「全体の音量」という公開上の意味に反する入力を引き続き受理します。固定版 CORE の契約とも一致しません。両モデルで負値を拒否し、0 を受理するテストも追加してください。"
+      },
+      {
+        "id": "numeric_range_local_contract_difference",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "numeric_range_unchanged_cross_field_issue",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "numeric_range_supported_input_ceiling",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "dynamic_bound_documented_as_model_contract",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "numeric_range_intentional_zero_scale",
+        "answer": "指摘はありません。"
+      }
+    ],
+    "regression": [
+      {
+        "id": "streaming_resampler_lookahead",
+        "answer": "修正推奨: 最初の要素を先読みするため、初回出力が次の入力の生成まで遅れ、空の入力では処理に失敗します。入力型と ResampleStream の既定値から dtype を得るための先読みは不要です。各要素を取得直後に処理し、反復終了後に float32 のゼロ長配列を last=True で渡してください。ゼロ長配列でフラッシュできることは、公開文書ではなく固定版 python-soxr 1.1.0 の実装で確認できる挙動です。"
+      },
+      {
+        "id": "required_final_nonempty_chunk",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "test_layer_and_tracked_issue",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "closed_union_mapping_array",
+        "answer": "任意: 現在の八要素は揃っていますが、タプル配列と find では union への要素追加時に対応表の更新漏れを型検査で検出できません。新しい要素が semantic validation に到達すると実行時例外になるため、satisfies Readonly<Record<元の union, 対応先>> を使う対応表か、網羅的な switch にしてください。"
+      },
+      {
+        "id": "closed_union_mapping_record",
+        "answer": "指摘はありません。"
+      },
+      {
+        "id": "pr_needed_reason_without_recipient_benefit",
+        "answer": "## 概要\n\n対象サービスでは、担当者から長期間コメントがなくても作業が継続されるため、コメントがないことだけでは再通知の必要性を判断できません。\nこの運用に合わせ、コメントがないことだけを理由に監視ツールの通知対象へ戻さないようにします。"
+      },
+      {
+        "id": "review_evidence_link_outside_posting_rule",
+        "answer": "ここで空配列を渡すと、固定している 4.2.0 は空入力を拒否するため、ストリーム終了時にエンコードが失敗します。[公式の説明](https://github.com/example/encoder/issues/19#issuecomment-1234)のとおり、finish=true は最後の非空要素と同じ呼び出しで渡す必要があります。最後の要素を一つ保持し、その要素の処理時に finish=true を指定してください。"
+      },
+      {
+        "id": "routing_review_session_analysis",
+        "answer": "指定されたコードレビューセッションの分析、学びの抽出、スキル更新と評価が目的であり、refined-review-hiho が対象とする通常のコードレビューではなく、明示的な適用対象外だからです。"
+      }
+    ],
+    "post_adjustment": [
+      {
+        "id": "numeric_range_semantic_sibling_omission",
+        "answer": "修正推奨 — AudioQuery.volumeScale と Preset.volumeScale。volumeScale は負値を受理したままです。負値を渡すと 422 にならず、波形への乗算で位相が反転します。これは「全体の音量」という説明から外れ、同じ AudioQuery を扱う固定版 CORE の 0 以上という制約とも一致しません。両モデルへ 0 以上の制約を追加し、負値が 422 になるテストを追加してください。"
+      }
+    ]
+  }
+}

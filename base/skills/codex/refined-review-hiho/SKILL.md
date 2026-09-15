@@ -17,7 +17,7 @@ description: このスキルを明確に利用するよう指示された場合�
 5. 外部ライブラリの挙動へ依存する候補は、固定されているバージョンの資料で確認する。
 6. 各候補が今回の変更で発生または悪化したことを確認してから報告する。
 
-Python のストリーム処理、テスト追加の要否、共通化や TODO の解消、UI 修正で追加された CSS の必要性、TypeScript の閉じた型の対応をレビューするときは、[セッションから確定した規則](references/session-derived-rules.md)を読む。
+Python のストリーム処理、数値入力の値域制約、テスト追加の要否、共通化や TODO の解消、UI 修正で追加された CSS の必要性、TypeScript の閉じた型の対応をレビューするときは、[セッションから確定した規則](references/session-derived-rules.md)を読む。
 該当しない変更では読まない。
 
 レビューに続いて PR タイトル、PR 本文、レビュー後の変更を説明する通常 PR コメントを作成または修正するときは、[GitHub 投稿文の規則](references/github-posting-rules.md)を読む。
