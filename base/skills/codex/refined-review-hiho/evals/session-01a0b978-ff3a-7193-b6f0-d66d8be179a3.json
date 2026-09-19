@@ -1,0 +1,135 @@
+{
+  "session_id": "01a0b978-ff3a-7193-b6f0-d66d8be179a3",
+  "skill_name": "refined-review-hiho",
+  "source_log": "/home/hihok/.codex/sessions/2026/09/19/rollout-2026-09-19T20-41-49-01a0b978-ff3a-7193-b6f0-d66d8be179a3.jsonl",
+  "related_logs": [],
+  "workflow": "公式 skill-creator の既存スキル更新フローに従い、現行規則との重複確認、試作規則の作成、独立エージェントによる旧版と試作版の動作評価、quick_validate を使用した。制御した評価で改善差がなかったため試作規則を戻し、評価資源だけを追加した。",
+  "review_cases": [
+    {
+      "id": "public_release_mistaken_for_supported_audience",
+      "outcome": "Codex は public な latest-dev 成果物にも削除される起動手順が必要だとして修正を求めた。ユーザーは、それが実際に利用者へ案内する正規経路かを問い直し、文書の読者を意識すべきだと明示した。Codex は公式サイトが安定版タグの文書だけを取り込み、開発版を案内していないことを確認して指摘を撤回した。",
+      "decision": "文書の対象読者と提供経路を確認する学びは確定した。ただし、現行の目的と対象範囲の確認、具体的な利用者影響の確認、未確認候補を報告しない規則で、独立評価の対象内、対象外、不明な経路をすべて正しく区別できた。専用規則は追加せず、評価ケースで既存規則を補強する。"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "verify_document_audience_and_delivery_path",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "正しさ、仕様との一致",
+        "コメントとドキュメント",
+        "レビューコメントの具体性、理由、重大度"
+      ],
+      "scope": "インストール、起動、移行、利用方法などの利用者向け文書を変更するレビュー",
+      "condition": "文書変更の妥当性が、リリース、配布物、掲載先ごとに異なる場合",
+      "check": "文書の掲載先と同梱先、参照するリリースやバージョン、公式の案内経路、対象読者とサポート範囲を追う。",
+      "action": "対象読者が公式に案内される経路で必要な手順を変更が欠落させる場合だけ指摘する。",
+      "risk": "public なだけの開発用成果物まで文書の対象とみなし、対象読者に不要な手順を求める。",
+      "exception": "文書が全成果物を対象と明示する場合、開発版も公式に案内する場合、成果物に同梱する文書がその利用者向けである場合は対象に含める。",
+      "severity": "対象読者への具体的な影響に合わせる。成果物が public という事実だけでは重大度を付けない。",
+      "confidence": "高",
+      "existing_rule": "SKILL.md の PR の目的と対象範囲を確認する手順、具体的な利用者影響を求める選別条件、未確認候補を報告しない規則",
+      "decision": "見送り。元セッションでは現行版が誤判定したが、旧版と試作版の独立評価はどちらも文書の四ケースへ全て合格し、試作規則による改善差を確認できなかった。",
+      "evidence": [
+        "ログ 262 行目で Codex は、public な latest-dev に必要な手順まで削除されるとして修正を求めた。",
+        "ログ 269 行目でユーザーは、latest-dev が実際に利用者へ案内する正規経路かを問い直した。",
+        "ログ 295 行目でユーザーは、文書が誰向けかを意識したいと明示した。",
+        "ログ 330 行目で Codex は、公式サイトが安定版タグの文書を取り込み、latest-dev は正規配布経路ではないと確認して指摘を撤回した。"
+      ]
+    }
+  ],
+  "other_exclusions": [
+    {
+      "candidate": "public なプレリリースは常に文書の対象外とする",
+      "reason": "名称や公開区分だけでは対象読者を決められない。公式に案内するプレビュー版や、全成果物を対象と明示する文書では必要な手順を残す必要がある。"
+    },
+    {
+      "candidate": "ダウンロード数で文書の対象読者を判定する",
+      "reason": "元セッションのダウンロード数は補助的な観測にすぎず、時点で変わる。公式の案内経路、文書の掲載元、サポート範囲を置き換える根拠にはならない。"
+    },
+    {
+      "candidate": "指摘を撤回するときの文面",
+      "reason": "ユーザーは調査の継続と観点を承認したが、撤回文を書き直していない。投稿文やレビューコメントの書き方を導く根拠にはしない。"
+    },
+    {
+      "candidate": "GitHub 投稿文の規則",
+      "reason": "対象セッションには PR タイトル、PR 本文、投稿する通常コメントの推敲がない。"
+    }
+  ],
+  "evaluation_method": {
+    "comparison": "旧版と、文書の読者と提供経路を確認する専用規則を加えた試作版を、元セッションの結論と assertions を渡さない別々の独立エージェントで評価した。文書の対象外、対象内、対象不明、全成果物を対象とする四ケースと、既存規則の比較用二ケースを提示した。",
+    "baseline": {
+      "passed": 4,
+      "total": 4
+    },
+    "candidate": {
+      "passed": 4,
+      "total": 4
+    },
+    "improvement": "なし。旧版も試作版も、public だが案内対象外の成果物を指摘せず、公式プレビュー版と全成果物を対象とする文書では必要な手順の欠落を指摘し、対象読者を確認できない場合は指摘を確定しなかった。",
+    "selection": "改善差を確認できないため、専用規則と参照条件の変更を戻した。四ケースは既存規則の回帰評価として cases.json に追加した。",
+    "case_ids": [
+      "documentation_public_prerelease_outside_audience",
+      "documentation_official_preview_shared_guide",
+      "documentation_audience_unconfirmed",
+      "documentation_all_public_assets_explicit_scope"
+    ],
+    "regression_comparison": {
+      "cases": [
+        "数値入力の値域制約",
+        "レビューセッション分析の適用範囲"
+      ],
+      "result": "旧版と試作版の回答は同じ判断と修正方向になり、試作規則による新しい回帰は確認しなかった。"
+    },
+    "limitations": [
+      "各版一回の評価であり、統計的な再現率は測っていない。",
+      "評価ケースには対象読者と案内経路の証拠を提示したため、実リポジトリから必要な調査先を発見できるかは比較していない。",
+      "元セッションでは旧版の誤判定を確認しているが、制御した再評価では同じ誤判定を再現できなかった。",
+      "試作規則を採用しなかったため、既存五十四ケース全ての再実行はしていない。"
+    ]
+  },
+  "validation": {
+    "quick_validate": "成功",
+    "cases_json": "jq による構文検証に成功。既存五十四ケースへ四ケースを追加し、計五十八ケース。セッション評価ファイルも構文検証に成功。",
+    "production_code": "変更なし",
+    "git": "実行なし"
+  },
+  "answers": {
+    "baseline": [
+      {
+        "id": "documentation_public_prerelease_outside_audience",
+        "answer": "指摘はありません。変更対象は公式サイトが安定版タグから取り込む安定版利用者向け案内です。public な latest-dev が存在するだけでは、この案内が latest-dev の利用契約に含まれるとは確認できません。"
+      },
+      {
+        "id": "documentation_official_preview_shared_guide",
+        "answer": "修正必須。初回起動案内から許可手順を全面削除すると、同じページへ公式に案内されるプレビュー版の利用者が起動に必要な操作を確認できなくなります。プレビュー版向けとして手順を残すか、署名状態ごとに案内を分けてください。"
+      },
+      {
+        "id": "documentation_audience_unconfirmed",
+        "answer": "指摘はありません。nightly 版が public で未署名であることだけでは、変更対象の案内が nightly 版にも適用される契約だと確認できません。"
+      },
+      {
+        "id": "documentation_all_public_assets_explicit_scope",
+        "answer": "修正必須。全成果物に適用すると明記した案内から未署名版の起動手順を削除すると、公式サイトから案内される nightly 版が必要な手順を失います。nightly 版向けの手順を残し、署名済み版と未署名版の条件を分けてください。"
+      }
+    ],
+    "candidate": [
+      {
+        "id": "documentation_public_prerelease_outside_audience",
+        "answer": "指摘はありません。latest-dev が public であっても、公式の案内経路は安定版だけを対象としており、開発版はサポート対象として案内されていません。"
+      },
+      {
+        "id": "documentation_official_preview_shared_guide",
+        "answer": "修正必須。公式ダウンロードページからサポート対象のプレビュー版利用者も同じ案内へ誘導されます。安定版とプレビュー版で手順を分けるか、プレビュー版も署名と公証を行ってください。"
+      },
+      {
+        "id": "documentation_audience_unconfirmed",
+        "answer": "指摘はありません。nightly 版が public かつ未署名という情報だけでは、その利用者が変更対象の案内に従う対象読者か確認できません。"
+      },
+      {
+        "id": "documentation_all_public_assets_explicit_scope",
+        "answer": "修正必須。案内は Releases の全成果物を対象と明記し、公式サイトも nightly 版へ誘導しています。nightly 版向けの手順を残すか、nightly 版を案内の前提に合わせて署名してください。"
+      }
+    ]
+  }
+}

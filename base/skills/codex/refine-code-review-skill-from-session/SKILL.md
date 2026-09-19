@@ -43,7 +43,7 @@ description: このスキルを明確に利用するよう指示された場合�
 
 あわせて、改善対象となるコードレビュースキルについて次を読む。
 
-- `~/Github/hiho_ai_coding/base/skills/codex/refined-review-hiho/SKILL.md`
+- 改善対象 `~/Github/hiho_ai_coding/base/skills/codex/refined-review-hiho/SKILL.md`
 - スキルから参照される関連ファイル
 - 既存の評価ケース
 - 既存のレビュー規則
