@@ -1,6 +1,6 @@
 ---
 name: contribute-voicevox-github
-description: VOICEVOX Organization のリポジトリで Issue や PR を作成する。テンプレートの取得方法とフォーマットがある。VOICEVOX への貢献時に使う。
+description: VOICEVOX Organization のリポジトリで Issue や PR を作成する。テンプレートの取得方法とフォーマットがある。主に VOICEVOX への貢献時に使うが、他のリポジトリへの貢献時にも使える。
 ---
 
 # VOICEVOX GitHub 貢献
