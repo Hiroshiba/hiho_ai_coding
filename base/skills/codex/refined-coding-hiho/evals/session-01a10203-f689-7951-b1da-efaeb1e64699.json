@@ -1,0 +1,63 @@
+{
+  "skill_name": "refined-coding-hiho",
+  "session_id": "01a10203-f689-7951-b1da-efaeb1e64699",
+  "cases": [
+    {
+      "id": "coding_complex_comment",
+      "prompt_lines": [
+        "複雑でぱっと見で分からない以下のセレクターについて、説明コメントを端的に提案してください。実装はしないでください。",
+        ".audio-length {",
+        "  .audio-cell:hover .q-input:has(.delete-button) &,",
+        "  .audio-cell .q-input:has(.delete-button:focus) & {",
+        "    visibility: hidden;",
+        "  }",
+        "}",
+        ""
+      ],
+      "assertions": [
+        "ホバーと削除ボタンのフォーカスを条件として、秒数を隠す挙動を短く説明する",
+        "構文の読み方を解説せず、whatの要約に通常コメントを使う"
+      ]
+    },
+    {
+      "id": "coding_reason_comment",
+      "prompt_lines": [
+        "SCSSの:not(:empty)を残す理由コメントを短くしてください。Quasarの.q-field__after:emptyはdisplay:noneで領域を非表示にします。自前のscoped CSSで空のafterにもdisplay:gridを指定するとそちらが勝ち、padding-left:5pxの幅が現れます。今は:not(:empty)のときだけdisplayを変えています。直前の案は『空のafterはQuasarのdisplay:noneでレイアウトから外れ、paddingも幅を取らない。このscoped CSSで空にもGridを適用するとdisplay:noneを上書きし、padding-leftの5px分の幅を取るため、空でない場合にだけ適用する』です。何を残し何を省くか示し、コメントを提案してください。"
+      ],
+      "assertions": [
+        "Quasarの:emptyに対するdisplay:noneという外部契約を残す",
+        "5pxやleftなど別の値・方向でも成立する細部を理由から外す",
+        "日常語の空だけで疑似クラスの定義を曖昧にせず、理由をNOTEとして簡潔に示す"
+      ]
+    },
+    {
+      "id": "coding_negative",
+      "prompt_lines": [
+        "既存の単純なCSS color:redをcolor:blueに直す実装で、コメント追加は依頼されていません。対象の画面は青が仕様と確定しています。コメントはコードから自明な処理説明を増やさない方針です。この差分にどんなコメントを追加するか、必要性も含め判断してください。"
+      ],
+      "assertions": [
+        "単純な色変更に自明な処理説明やNOTEを追加しない"
+      ]
+    },
+    {
+      "id": "coding_publish_scope",
+      "prompt_lines": [
+        "小さな表示修正のPR本文を作ります。通常時・ホバー・フォーカスの各状態は対象部品の実DOMで確認済みです。実アプリ全体の対話確認や別OSでの確認は行っていません。今回はその範囲の対応追加はなく、既知の不具合もありません。ユーザーは本文を変更の目的と表示結果へ絞るよう指定しています。初稿『秒数と操作ボタンが同じ場所で切り替わるようにします。実アプリ全体の対話確認は行っていません』を整えてください。投稿や実装は不要です。"
+      ],
+      "assertions": [
+        "判断に関係しない全体・別OSの未実施事項をPR本文から外す",
+        "未実施を確認済みとは表現しない"
+      ]
+    },
+    {
+      "id": "coding_publish_risk",
+      "prompt_lines": [
+        "プラグインの配布に向けてPR本文を提案してください。通常の表示確認は成功しましたが、今回追加する唯一のインストール経路をまだ試しておらず、既存設定の移行が成功するか不明です。ユーザーはこの未確認事項を公開判断のために記載するよう指示しました。本文は簡潔にする方針です。残す内容を示し、投稿や検証操作はしないでください。"
+      ],
+      "assertions": [
+        "追加する利用経路と移行の未確認を、その影響とともに残す",
+        "確認済みの表示からインストールや移行の成功を推定しない"
+      ]
+    }
+  ]
+}
