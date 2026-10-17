@@ -1,0 +1,620 @@
+{
+  "session_id": "01a149fe-3334-7a31-ba5a-542a74a66dd5",
+  "skill_name": "refined-review-hiho",
+  "skill_path": "/home/hihok/Github/hiho_ai_coding/base/skills/codex/refined-review-hiho/SKILL.md",
+  "source_log": "/home/hihok/.codex/sessions/2026/10/17/rollout-2026-10-17T22-12-38-01a149fe-3334-7a31-ba5a-542a74a66dd5.jsonl",
+  "related_logs": [
+    "/home/hihok/.codex/sessions/2026/10/17/rollout-2026-10-17T22-03-05-01a149f5-739e-7631-8480-c3ed2972033b.jsonl"
+  ],
+  "workflow": "指定されたログ取得コマンドの返した対象セッションとフォーク元だけを分析した。公式 skill-creator の既存スキル更新、独立エージェントによる旧版と試作版の比較、quick_validate を使用した。独自の評価実行基盤は作成していない。",
+  "review_cases": [
+    {
+      "id": "inline_fetch_and_export",
+      "change": "音声取得用の共有アクションを削除し、単体書き出しと連結書き出しへ処理を移した。元は呼び出し結果を受け取る一つの外側変数だったが、変更後はデータと設定の二つの未初期化 let を宣言し、同じ try 内で代入した。",
+      "initial_review": "フォーク元ログ193行で、Codex は追加指摘なしとして承認可能とした。",
+      "correction": "対象ログ140行でユーザーが try 内の処理の最小性を問い、175行で設定用 let が不要ではないかと指摘した。187行で、論理的な捕捉範囲を増やす変更ではないのに行数と不要な let が増えたことをレビュースキルで見つけるべきだと明示した。",
+      "final_outcome": "レビューで検出するという方針はユーザーが明示した。プロダクションコードの修正、テスト、GitHub への投稿はログにない。",
+      "boundary": "元の共有アクション内にも同じ前提検査があり、その呼び出しが try に囲まれていた。行数増加だけを、前提検査の例外が今回新たに捕捉されるようになった根拠にはしない。"
+    },
+    {
+      "id": "sibling_batch_export",
+      "change": "同じ PR の連結書き出しにも同じ設定取得と未初期化 let があった。一方こちらは finally で進捗通知する。",
+      "correction": "対象ログ199行でユーザーが二つ目の箇所を提示し、225行で、PR 内に同じ指摘が成立する類似箇所を見つけたらそちらも指摘する方針を明示した。",
+      "final_outcome": "Codex は218行で設定の const 初期化と読み切り結果に必要な let を区別し、finally の実行経路の差を述べた。ユーザーは225行で類似箇所を含めるレビュー方針を明示した。進捗通知の全契約やコード修正の実施までは確認できない。"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "refactor_try_responsibility",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "設計、責務、抽象化",
+        "境界条件、エラー経路",
+        "複雑さ、過剰設計、保守性",
+        "レビューコメントの具体性、理由、重大度"
+      ],
+      "condition": "処理の移動やインライン化で try 内の処理が増える変更",
+      "scope": "言語共通の責務確認。ストリームの読み切りに関する例外はストリームを使う経路だけに適用する。",
+      "check": "catch の対象、元の呼び出し内部まで含めた捕捉範囲、前提検査、値の取得時点、非同期処理への依存、finally の通知と後片付けを対応付ける。",
+      "action": "捕捉対象外で、安全に移せる処理を外へ出す任意の整理を指摘し、通信処理と読み切りは残す。",
+      "risk": "捕捉の責務が読み取りにくくなり、不要な外側宣言と try 内代入を増やす。",
+      "exception": "元から捕捉された前提違反を新規不具合としない。値が生成後に初めて得られる場合や、通知と後片付けの契約を変える場合は機械的に移動しない。",
+      "severity": "整理だけなら任意。今回新たに生じる具体的な誤分類や通知欠落を確認できる場合だけ影響に合わせる。",
+      "evidence": [
+        "対象ログ140、168、187行",
+        "フォーク元ログ94行の変更概要と対象ログ148行の最新コード。前提検査は元の共有処理内でも呼ばれていた。"
+      ],
+      "confidence": "高。ユーザーの明示的なレビュー方針。コード修正の実施は未確認。",
+      "existing_rule": "SKILL.md のエラー経路を追う手順、今回の変更が発生または悪化させた問題だけを扱う選別条件",
+      "decision": "採用。処理の移動で増えた try 内の処理を責務で絞る規則を追加する。元から捕捉されていた前提違反を新規不具合とせず、通信ストリームの読み切りと finally の契約を個別に確認する。"
+    },
+    {
+      "id": "unnecessary_outer_let",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "複雑さ、過剰設計、保守性",
+        "コーディングスタイルと既存コードとの一貫性"
+      ],
+      "condition": "try 内で一度代入して後で使うために未初期化の let を追加する変更",
+      "scope": "TypeScript など const と let を区別する言語の変更",
+      "check": "各値の生成元と取得時点、try 内の非同期処理への依存、再代入、catch と finally の要件を確認する。",
+      "action": "独立して取得できる値だけを try 前の const 初期化へまとめ、try 内の結果に必要な let は残す。",
+      "risk": "不要な可変性と分離した宣言が増え、実際に try 内の結果を受け取る変数との区別が難しくなる。",
+      "exception": "一回代入するという事実だけで全 let を不要としない。const 化のためだけのラッパーや、取得順序と失敗時の扱いを変える提案をしない。",
+      "severity": "任意。実動作の欠陥と混同しない。",
+      "evidence": [
+        "対象ログ175、180、187、218行"
+      ],
+      "confidence": "高。ユーザーが不要な let の見落としを明示的に訂正した。",
+      "existing_rule": "SKILL.md のデータの流れを追う手順。外側 let の要否を確認する専用規則はない。",
+      "decision": "採用。独立した値の const 初期化と try 内の結果に必要な let を区別する規則を追加する。try の範囲と同じ原因なら一件の任意の指摘にまとめる。"
+    },
+    {
+      "id": "check_similar_changed_paths",
+      "type": "レビュー時の検出規則",
+      "classification": [
+        "正しさ、仕様との一致",
+        "コーディングスタイルと既存コードとの一貫性",
+        "レビューコメントの具体性、理由、重大度"
+      ],
+      "condition": "PR 内の一つの変更箇所で指摘が成立し、同じ変更を受けた類似経路がある場合",
+      "scope": "全プロジェクトの PR レビュー。ただし依頼された対象範囲内に限定する。",
+      "check": "同じ変更を受けた経路を照合し、値の生成時点や catch、finally の違いも個別に確認する。",
+      "action": "同じ条件で成立する他の箇所も報告に含める。",
+      "risk": "単体側だけを修正して同じ PR の一括側へ問題を残す。",
+      "exception": "見た目が似ていても生成時点やエラー契約が違う経路、修正済みの経路、今回の変更で悪化していない既存コードまで指摘しない。",
+      "severity": "各箇所で成立した問題の重大度を維持する。箇所数では上げない。",
+      "evidence": [
+        "対象ログ199、218、225、230行"
+      ],
+      "confidence": "高。ユーザーの明示的なレビュー方針。",
+      "existing_rule": "SKILL.md の今回の変更で発生または悪化したことを確認する手順。数値入力の意味上の同種項目の照合は既存の専用規則にある。",
+      "decision": "採用。既存のレビュー手順へ、指摘が成立した場合に PR 内の同じ変更を受けた類似箇所を確認する行動を組み込む。今回の変更で発生または悪化した問題だけを扱う既存条件を維持する。"
+    }
+  ],
+  "other_exclusions": [
+    {
+      "candidate": "Blob をすべて ArrayBuffer へ統一する",
+      "reason": "保存だけに使う中間変換と、再ストリーム化や URL 用の Blob は用途が異なる。キャッシュまで統一する採用指示はなく、一般化すると範囲が広がる。"
+    },
+    {
+      "candidate": "中間 Blob の削減で性能やメモリが改善すると指摘する",
+      "reason": "Codex 自身が改善量は未測定と述べている。ユーザーによる採用、実測、コード変更の結果はない。"
+    },
+    {
+      "candidate": "ReadableStream の変換 API とキャッシュ導入 PR の調べ方",
+      "reason": "API 調査と履歴調査であり、再利用可能なレビューの訂正ではない。"
+    },
+    {
+      "candidate": "すべての内部前提違反を除く専用エラー分類を追加する",
+      "reason": "Codex が追加検討の可能性として述べただけで、ユーザーが採用した修正ではない。"
+    },
+    {
+      "candidate": "finally の通知は前提検査の失敗では不要とする",
+      "reason": "Codex が条件付きで述べただけであり、対象ログでユーザーが全通知契約を確定していない。移動の可否を各経路の契約で確認することにとどめる。"
+    },
+    {
+      "candidate": "GitHub 投稿文の規則",
+      "reason": "PR タイトル、PR 説明、投稿用コメントの初稿、ユーザーの書き直し、最終投稿の事例はない。投稿文規則を追加しない。"
+    }
+  ],
+  "evaluation_method": {
+    "comparison": "旧版と試作版を別々の独立エージェントで各16ケース実行した。同じ依頼を case_01〜case_16 と匿名化し、当該版のスキルと参照ファイルだけを読ませた。分析、元セッション、期待結果、assertions、他方の版と回答は渡していない。親が実回答を既存形式の assertions に対して意味で判定した。",
+    "baseline": {
+      "passed": 14,
+      "total": 16,
+      "new_cases": {
+        "passed": 6,
+        "total": 8
+      },
+      "regression_cases": {
+        "passed": 8,
+        "total": 8
+      }
+    },
+    "candidate": {
+      "passed": 16,
+      "total": 16,
+      "new_cases": {
+        "passed": 8,
+        "total": 8
+      },
+      "regression_cases": {
+        "passed": 8,
+        "total": 8
+      }
+    },
+    "improved_cases": [
+      "refactor_try_and_let_sibling_exports",
+      "refactor_rereview_sibling_with_distinct_contract"
+    ],
+    "improvement": "旧版は、今回増えた設定用 let と try 内の代入を単体、一括とも見落とした。再レビューでは一括側の整理を見つけたが修正必須とした。試作版は両経路で任意の整理を検出し、必要な let と finally を維持して、準備後に設定を作る別経路には適用しなかった。",
+    "final_adjustment": "元の呼び出し内部を含めた捕捉範囲を確認する文言を明確にし、ストリームの読み切りについての確認を通信を伴う場合へ絞った。",
+    "final": {
+      "passed": 8,
+      "total": 8,
+      "method": "文言を絞った最終版を、旧版と試作版の回答を見ていない新しい独立エージェントで変更関連8ケースへ適用した。依頼と最終版のスキルと参照ファイルだけを渡した。",
+      "result": "両経路の整理と別契約の除外、必要な let、通信ストリームの読み切り、finally の通知を正しく区別し、重大度を任意に保った。",
+      "case_ids": [
+        "refactor_try_and_let_sibling_exports",
+        "refactor_mutable_binding_without_error_conversion",
+        "refactor_try_result_requires_outer_binding",
+        "refactor_value_created_during_request",
+        "refactor_finally_covers_all_attempts",
+        "refactor_similar_unchanged_code_outside_pr",
+        "refactor_rereview_sibling_with_distinct_contract",
+        "refactor_stream_read_remains_recoverable"
+      ]
+    },
+    "regressions": 0,
+    "case_ids": [
+      "refactor_try_and_let_sibling_exports",
+      "refactor_mutable_binding_without_error_conversion",
+      "refactor_try_result_requires_outer_binding",
+      "refactor_value_created_during_request",
+      "refactor_finally_covers_all_attempts",
+      "refactor_similar_unchanged_code_outside_pr",
+      "refactor_rereview_sibling_with_distinct_contract",
+      "refactor_stream_read_remains_recoverable",
+      "streaming_resampler_lookahead",
+      "required_final_nonempty_chunk",
+      "test_layer_and_tracked_issue",
+      "pr_scoped_ui_posting",
+      "closed_union_mapping_array",
+      "routing_review_session_analysis",
+      "routing_standalone_pr_creation",
+      "review_evidence_link_outside_posting_rule"
+    ],
+    "case_results": [
+      {
+        "id": "refactor_try_and_let_sibling_exports",
+        "blind_id": "case_01",
+        "baseline": {
+          "passed": false,
+          "reason": "不合格。新たな挙動の欠陥がないとして指摘なしとし、今回増えた設定用 let と try 内代入の任意の整理を単体、一括の両経路で見落とした。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。単体と一括の両経路の設定を try 前で const 初期化する任意の整理を指摘し、通信と読み切り、必要な let、進捗通知を維持した。元の前提検査も捕捉されていたことを明記した。"
+        },
+        "final": {
+          "passed": true,
+          "reason": "合格。単体と一括の両経路の設定取得を try 前の const にする任意の整理を指摘した。既存の捕捉と新しい不具合を区別し、必要な let と通信失敗の捕捉、進捗通知を維持した。"
+        }
+      },
+      {
+        "id": "refactor_mutable_binding_without_error_conversion",
+        "blind_id": "case_02",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。必要な失敗記録と同じ例外の再送出を保ち、const 化のためだけの変更を要求しなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。失敗記録を必要とする設定検査を try 外へ移さず、const 化のためだけのラッパーを要求しなかった。"
+        },
+        "final": {
+          "passed": true,
+          "reason": "合格。両処理の失敗記録と再送出、取得順を保つため、外側 let の形式だけを理由に変更しなかった。"
+        }
+      },
+      {
+        "id": "refactor_try_result_requires_outer_binding",
+        "blind_id": "case_03",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。try 内で初めて得る結果を外で使う let と、保存失敗を分ける構造を問題にしなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。try 内の結果に必要な let を認め、生成と保存のエラー責務を保った。"
+        },
+        "final": {
+          "passed": true,
+          "reason": "合格。生成と保存のエラー責務を分け、try 内の結果を受け取る let を必要と判断した。"
+        }
+      },
+      {
+        "id": "refactor_value_created_during_request",
+        "blind_id": "case_04",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。準備後に初めて設定が作られる契約を確認し、取得を前へ移さなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。準備後に初めて得る設定と生成失敗へ変換する契約を確認し、外へ移さなかった。"
+        },
+        "final": {
+          "passed": true,
+          "reason": "合格。準備後に初めて設定を作る契約と、欠落を生成失敗にする仕様を尊重した。"
+        }
+      },
+      {
+        "id": "refactor_finally_covers_all_attempts",
+        "blind_id": "case_05",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。利用者入力の失敗変換と全経路の finally 通知を維持した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。利用者入力の検証失敗も変換対象とし、全経路の通知を維持した。"
+        },
+        "final": {
+          "passed": true,
+          "reason": "合格。利用者入力の不正も失敗変換し、全経路の finally 通知を維持した。"
+        }
+      },
+      {
+        "id": "refactor_similar_unchanged_code_outside_pr",
+        "blind_id": "case_06",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。修正済みの変更箇所と、今回悪化しない既存の類似箇所を指摘しなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。修正済みの経路と PR 範囲外の既存経路を指摘しなかった。"
+        },
+        "final": {
+          "passed": true,
+          "reason": "合格。修正済みの経路と PR 範囲外の未変更経路を指摘しなかった。"
+        }
+      },
+      {
+        "id": "refactor_rereview_sibling_with_distinct_contract",
+        "blind_id": "case_07",
+        "baseline": {
+          "passed": false,
+          "reason": "不合格。一括側の整理と別契約の除外は正しかったが、前提違反の到達条件が確認されない段階で修正必須に上げた。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。一括側に残った const 初期化の整理を任意とし、進捗通知を維持して、別の生成契約の経路へ誤適用しなかった。"
+        },
+        "final": {
+          "passed": true,
+          "reason": "合格。一括側の設定取得を任意の整理とし、別の設定生成契約の経路へ適用せず、必要な let と通信と通知を維持した。"
+        }
+      },
+      {
+        "id": "refactor_stream_read_remains_recoverable",
+        "blind_id": "case_08",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。読み切りの通信失敗も捕捉対象に含め、必要な let を問題にしなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。設定を整理済みと認め、読み切りと必要な let を維持した。"
+        },
+        "final": {
+          "passed": true,
+          "reason": "合格。通信ストリームの読み切りを catch の対象に残し、必要な let と整理済みの設定取得を問題にしなかった。"
+        }
+      },
+      {
+        "id": "streaming_resampler_lookahead",
+        "blind_id": "case_09",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。不要な先読みと空入力失敗を同じ原因で扱い、固定版実装と公開文書を区別した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。不要な先読みと空入力失敗を同じ原因で扱い、固定版実装と公開文書を区別した。"
+        }
+      },
+      {
+        "id": "required_final_nonempty_chunk",
+        "blind_id": "case_10",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。最終の非空入力と最初の実行時設定が必要なため、先読みを維持した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。最終の非空入力と最初の実行時設定が必要なため、先読みを維持した。"
+        }
+      },
+      {
+        "id": "test_layer_and_tracked_issue",
+        "blind_id": "case_11",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。所有レイヤーのテストを尊重し、別 Issue の対象外条件を戻さなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。所有レイヤーのテストを尊重し、別 Issue の対象外条件を戻さなかった。"
+        }
+      },
+      {
+        "id": "pr_scoped_ui_posting",
+        "blind_id": "case_12",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。操作範囲をタイトルに書き、概要と固定版の判断理由を分けた。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。操作範囲をタイトルに書き、概要と固定版の判断理由を分けた。"
+        }
+      },
+      {
+        "id": "closed_union_mapping_array",
+        "blind_id": "case_13",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。閉じた型の追加漏れを検出する対応表を任意の保守性改善とした。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。閉じた型の追加漏れを検出する対応表を任意の保守性改善とした。"
+        }
+      },
+      {
+        "id": "routing_review_session_analysis",
+        "blind_id": "case_14",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。過去レビューの分析とスキル改善を通常レビューの対象外とした。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。過去レビューの分析とスキル改善を通常レビューの対象外とした。"
+        }
+      },
+      {
+        "id": "routing_standalone_pr_creation",
+        "blind_id": "case_15",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。レビューと無関係な一般的な PR 作成を対象外とした。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。レビューと無関係な一般的な PR 作成を対象外とした。"
+        }
+      },
+      {
+        "id": "review_evidence_link_outside_posting_rule",
+        "blind_id": "case_16",
+        "baseline": {
+          "passed": true,
+          "reason": "合格。レビューの条件、影響、修正方向と依頼された根拠リンクを残した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "合格。レビューの条件、影響、修正方向と依頼された根拠リンクを残した。"
+        }
+      }
+    ],
+    "limitations": [
+      "各版各ケース一回の独立評価であり、統計的な再現率は測っていない。",
+      "評価は提示資料を用いる合成ケースで、実リポジトリから調査先を発見する性能、実アプリの動作、GitHub 投稿は検証していない。",
+      "try、外側変数、類似箇所の確認をまとめた変更の比較であり、各規則単独の寄与を分離した評価ではない。",
+      "元セッションではレビュー方針が明示されたが、最終的なプロダクションコード修正とテストの結果は確認できない。",
+      "既存64ケースのうち関連する8ケースを回帰評価した。既存全ケースの再実行はしていない。",
+      "GitHub 投稿文のユーザーによる書き直し事例がないため、新たな投稿文の規則と再現評価は追加していない。既存の投稿文とレビューコメントの分離は回帰評価した。"
+    ]
+  },
+  "validation": {
+    "quick_validate": "公式 skill-creator の quick_validate.py で旧版、試作版、最終版が成功。依存する PyYAML は uv で /tmp の一時環境へ取得した。",
+    "cases_json": "既存64ケースを保持し、新規8ケースを追加して計72ケース。jq による構文とID重複、各ケースの依頼と assertions の存在確認に成功。",
+    "session_record": "jq による JSON 構文と評価結果の整合性確認に成功。",
+    "production_code": "変更なし",
+    "git": "実行なし"
+  },
+  "changed_files": [
+    "SKILL.md",
+    "references/session-derived-rules.md",
+    "evals/cases.json",
+    "evals/session-01a149fe-3334-7a31-ba5a-542a74a66dd5.json"
+  ],
+  "rule_changes": {
+    "added": [
+      "references/session-derived-rules.md: 処理の移動で増えた try 内の処理を責務で絞る",
+      "references/session-derived-rules.md: try の都合だけで増えた可変変数を確認する"
+    ],
+    "modified": [
+      "SKILL.md: レビュー手順へ同じ PR 内の類似変更の照合を組み込む",
+      "SKILL.md: セッション由来の規則を読む条件へ、処理の移動で増えた try と外側変数を追加する"
+    ],
+    "removed_or_replaced": [],
+    "unchanged": [
+      "GitHub 投稿文の規則",
+      "明示起動のみの description と agents/openai.yaml の policy",
+      "今回の変更が発生または悪化させた問題だけを扱う指摘条件"
+    ]
+  },
+  "answers": {
+    "baseline": [
+      {
+        "id": "case_01",
+        "answer": "指摘はありません。\n\n設定オブジェクトが置換されないため、取得位置が変わっても保存時には同じオブジェクトを参照します。内部前提違反を生成失敗へ変換することと、その際にも一括処理の進捗を通知することは変更前からの挙動なので、今回の変更で新しく発生した問題としては指摘しません。"
+      },
+      {
+        "id": "case_02",
+        "answer": "指摘はありません。getInput と設定取得の順序、および両者の失敗を記録して同じ例外を再送出する処理は保たれています。設定取得を try の前へ移すと、必要な記録が失われるため、この整理は求めません。"
+      },
+      {
+        "id": "case_03",
+        "answer": "指摘はありません。取得の通信失敗だけを失敗結果へ変換し、save の失敗はエラーバウンダリへ伝える構成になっています。bytes を try の外で保存処理へ渡すための let にも、提示された条件では問題はありません。"
+      },
+      {
+        "id": "case_04",
+        "answer": "指摘はありません。設定は prepare の返答後に作成され、設定が欠けた場合も生成失敗にする契約なので、prepare 後かつ try 内で取得する必要があります。"
+      },
+      {
+        "id": "case_05",
+        "answer": "指摘はありません。入力検証と通信の両方を try 内に置くことで、どちらの失敗も公開契約どおり取得失敗へ変換しています。finally による通知も、設定不正、通信失敗、成功の各経路で一度実行されます。"
+      },
+      {
+        "id": "case_06",
+        "answer": "指摘はありません。最新の exportOne は開始前の設定検査を try の外で行い、取得失敗だけを生成失敗へ変換しています。exportLegacy の挙動は変更されず、入力契約も変わらないため、今回の変更による指摘には含めません。"
+      },
+      {
+        "id": "case_07",
+        "answer": "1. 修正必須だと思います — exportBatch の内部前提検査を生成失敗の catch から外す\n\n対象は exportBatch の `settings = assertPresent(state.items[key].settings)` と、その周囲の try です。内部前提が崩れて assertPresent が例外を投げた場合、現在の配置では generationFailure に変換され、指定されているエラーバウンダリへ届きません。さらに finally により、その要素の進捗も通知されます。\n\n設定は取得開始前から存在し、prepare が置換しない契約なので、各ループの try に入る前で `const settings = assertPresent(state.items[key].settings)` と取得する形へ変更すべきだと思います。prepare とストリームの読み切りは try 内に残せば、取得成功と通信失敗の進捗通知を保てます。開始前の前提違反について進捗通知の契約はないため、この配置で通知が行われなくても問題ありません。\n\nexportRemote は返答後に設定が作られ、設定欠落も生成失敗へ変換する契約なので、同じ移動の対象にはしません。"
+      },
+      {
+        "id": "case_08",
+        "answer": "指摘はありません。設定の前提検査は取得用の catch の外にあり、prepare とストリームを読み切る処理は両方とも try 内にあります。これにより、読み取り途中の通信失敗も生成失敗へ変換され、保存処理の失敗は別に伝播します。"
+      },
+      {
+        "id": "case_09",
+        "answer": "1. 修正推奨だと思います — 不要な一チャンク先読みを除く\n\n対象は `first_wave = next(stream)` と、次の wave を取得してから first_wave を変換するループです。最初のチャンクを変換器へ渡す前に二つ目の入力を待つため、先頭チャンクから出力できる場合も、応答開始が次のチャンクの生成待ちで遅れます。同じ構造により、空ストリームも冒頭の next で失敗します。\n\n入力の dtype は float32 に固定され、ResampleStream の既定値とも一致するので、初期化のために先頭入力を取り出す必要はありません。変換器を先に作り、各チャンクを受け取った時点で変換し、入力終了後に float32 の空配列を `last=True` で渡す形がよいと思います。\n\n空配列でのフラッシュは、提示された python-soxr 1.1.0 の固定版実装で確認された挙動に基づく修正案です。公開ドキュメントが保証しているのは、最終チャンクに last=True を渡すと残りをフラッシュすることまでです。空配列の用途が読み取りにくくなる場合は、終端フラッシュのためであることを短い NOTE で示すのがよいと思います。"
+      },
+      {
+        "id": "case_10",
+        "answer": "指摘はありません。最後の非空チャンクに finish=True を付ける契約では、一要素保持して終端を判定する必要があります。最初の入力から dtype とチャンネル数を得る必要もあり、非空入力は呼び出し元が保証しているため、提示された先読みには理由があります。"
+      },
+      {
+        "id": "case_11",
+        "answer": "指摘はありません。変更された後処理の挙動は所有レイヤーの単体テストで検証され、API E2E が疎通を担当する既存方針とも整合しています。変更されないゼロ以下の入力経路や、その別 Issue を今回の指摘には含めません。"
+      },
+      {
+        "id": "case_12",
+        "answer": "指摘はありません。\n\nタイトル案:\n\n`fix: ソングのプロジェクトインポート画面のファイル欄へのドロップでトラック一覧を表示する`\n\n本文案:\n\n## 変更概要\n\nメニューから開くソングのプロジェクトインポート画面で、ファイル入力欄へドラッグ＆ドロップしたときもトラック一覧を表示します。\n\n## 判断理由\n\n使用中の Quasar 2.19.3 の QFile は、ファイル選択とドラッグ＆ドロップの両方を `update:modelValue` で通知します。\nこの通知で受け取った `File` を読み込みへ渡し、操作方法によるトラック一覧表示の差を解消します。"
+      },
+      {
+        "id": "case_13",
+        "answer": "1. 任意だと思います — 閉じた型の対応漏れを型検査で検出する\n\n対象は NotificationTimeReasonCode と WaitClass の対応配列と find による探索です。現在の八つは正しく対応していますが、理由コードを union へ追加した際に対応表の更新が漏れても、コンパイルが通ります。その新しい理由を持つ外部提案が semantic validation に届くまで不足が分からず、そこで例外になります。\n\nオブジェクトの対応表を `satisfies Record<NotificationTimeReasonCode, WaitClass>` で検査するか、到達不能分岐を持つ網羅的な switch へ変更するのがよいと思います。現在到達する理由コードの欠落はないため、重大度は保守性の改善に当たる任意と判断します。"
+      },
+      {
+        "id": "case_14",
+        "answer": "適用対象ではありません。依頼はコード差分のレビューではなく、過去のレビューセッションの分析とスキルの改善・評価であり、このレビュー用スキルが対象から除外している作業に当たるためです。"
+      },
+      {
+        "id": "case_15",
+        "answer": "適用対象ではありません。レビューに続く PR 文案の作成ではなく、新機能の実装前に行う一般的な PR 作成に当たるためです。"
+      },
+      {
+        "id": "case_16",
+        "answer": "この終了処理は、空入力を拒否する固定版 4.2.0 では例外になり、正常に終了できません。[公式の契約説明](https://github.com/example/encoder/issues/19#issuecomment-1234) に従い、最後の非空要素を渡す呼び出しで `finish=true` を指定する形へ変更すべきだと思います。"
+      }
+    ],
+    "candidate": [
+      {
+        "id": "case_01",
+        "answer": "1. 任意 — `exportOne` と `exportBatch` の設定取得を、各 `try` の前で `const` 初期化する形にそろえるべきだと思います。\n\n対象は両関数の `let settings` と `settings = assertPresent(...)` です。設定は開始前から存在し、`prepare` による差し替えもないため、非同期処理の結果を待つ必要がありません。同じオブジェクトへの派生値の反映も、先に取得した参照から確認できます。今回追加された未初期化の可変変数と分離した代入をなくし、`try` には `prepare` とストリームの読み切りを残せます。`exportBatch` ではループ内の `try` 前へ移し、取得成功・通信失敗に対する `finally` の通知を維持してください。開始前の前提違反では通知不要という契約にも合います。\n\n前提検査の例外は変更前も `fetchAsset` の呼び出しを囲む `catch` に捕捉されていたため、今回新たに誤分類を起こした不具合としては扱いません。"
+      },
+      {
+        "id": "case_02",
+        "answer": "指摘はありません。`getInput` と設定の検査は、どちらも失敗時の記録と同じ例外の再送出が必要です。取得順も維持されており、設定が入力値に依存しないことだけでは `try` の前へ移せません。この構造で取得結果を外側の `assemble` へ渡すための `let` を、問題とは判断しません。"
+      },
+      {
+        "id": "case_03",
+        "answer": "指摘はありません。取得の通信失敗だけを失敗結果へ変換し、保存処理の失敗はそのまま伝播する構造になっています。`bytes` は `try` 内の非同期処理で初めて得られるため、外側の `let` をなくすためだけの補助関数や処理の移動は不要です。"
+      },
+      {
+        "id": "case_04",
+        "answer": "指摘はありません。設定は `prepare` によって初めて作られるため、取得を `try` の前へ移せません。準備後の設定欠落も生成失敗へ変換する仕様なので、`assertPresent` を現在の `catch` の対象に含めることも契約に合っています。"
+      },
+      {
+        "id": "case_05",
+        "answer": "指摘はありません。設定の検証と通信の失敗を同じ取得失敗へ変換し、成功を含めた全経路で `finally` から一度通知しています。`parseSettings` を `try` の外へ出すと設定不正時の失敗変換と通知が変わるため、現在の配置と外側の `let` には理由があります。"
+      },
+      {
+        "id": "case_06",
+        "answer": "指摘はありません。変更対象の `exportOne` は、開始前の前提検査を `try` の外で行い、準備と読み切りの失敗を生成失敗へ変換しています。`exportLegacy` はコード・呼び出し元・入力契約が今回変更されておらず、その既存構造を今回の変更による問題としては報告しません。"
+      },
+      {
+        "id": "case_07",
+        "answer": "1. 任意 — `exportBatch` の設定取得も、ループ内の `try` 前で `const` 初期化する形にするべきだと思います。\n\n対象は `let settings` と `settings = assertPresent(state.items[key].settings)` です。設定は開始前から存在し、処理中も差し替わらないため、取得処理を待つ必要がありません。前提検査を外へ出せば、不要な可変変数と離れた代入を減らし、生成失敗へ変換する処理の範囲も明確になります。`prepare` と読み切りは `try` に残すことで、成功・通信失敗の進捗通知を維持できます。開始前の前提違反では通知不要という契約も保てます。任意の整理としての指摘です。\n\n`exportRemote` の設定は `remotePrepare` の返答で作られ、欠落も生成エラーとして扱う契約なので、こちらの設定取得を `try` 前へ移す指摘はありません。"
+      },
+      {
+        "id": "case_08",
+        "answer": "指摘はありません。開始前の前提検査を外へ出し、`prepare` とストリームの読み切りを同じ `try` に残すことで、読み取り中の通信失敗も生成失敗へ変換できます。`bytes` はそこで初めて得られる値なので、現在の `let` はこの構造に必要です。"
+      },
+      {
+        "id": "case_09",
+        "answer": "1. 修正推奨 — `resample_stream` の一要素先読みをなくすべきだと思います。\n\n対象は `first_wave = next(stream)` と、次の `wave` を取得してから保持中のチャンクを変換するループです。最初のチャンクを変換器へ渡すまで次の入力または終端を待つため、リアルタイム応答の開始が余分に遅れます。同じ先読みの構造により、空イテレータでは先頭の `next(stream)` も失敗します。\n\n入力型と変換器の既定値で dtype は float32 に決まっているため、最初のチャンクを取得せずに変換器を作り、各チャンクを受け取った時点で変換し、最後に空の float32 配列を `last=True` で渡してフラッシュできます。空配列を終端通知に使う意図が読み取りにくければ、その理由を示す短い NOTE を添えてください。\n\n空配列が受理される根拠は、提示された固定版 1.1.0 の実装です。公開文書が保証する `last=True` によるフラッシュとは区別しています。空入力が実際の呼び出し契約で渡されるかは示されていないため、それだけを独立した修正必須の問題にはしません。"
+      },
+      {
+        "id": "case_10",
+        "answer": "指摘はありません。最後の非空チャンクと同時に `finish=True` を渡す契約なので、次の入力の有無を確認するための保持には理由があります。空チャンクによるフラッシュも使えず、dtype とチャンネル数は最初のチャンクから取得する必要があります。入力の非空保証により、先頭の `next(stream)` も契約に合っています。"
+      },
+      {
+        "id": "case_11",
+        "answer": "指摘はありません。追加された出力条件は、その挙動を所有する後処理の単体テストで検証されています。API E2E が疎通を担当する既存方針に照らして、同じ条件の E2E 追加を要求する根拠はありません。ゼロ以下の値の経路も今回変更されず、別 Issue で扱われているため指摘対象に含めません。"
+      },
+      {
+        "id": "case_12",
+        "answer": "fix: ソングのプロジェクトインポート画面で入力欄へのドロップ時もトラック一覧を表示する\n\n## 変更概要\n\nメニューから開くソングのプロジェクトインポート画面で、ファイル入力欄へドラッグ＆ドロップしたファイルのトラック一覧を表示できるようにします。\n\n## 判断理由\n\n使用中の Quasar 2.19.3 の QFile は、ファイル選択とドラッグ＆ドロップの結果を同じ `update:modelValue` で通知します。\nこの通知からファイルを受け取って読み込むようにし、どちらの操作でもトラック一覧を表示する処理へ進めます。"
+      },
+      {
+        "id": "case_13",
+        "answer": "1. 任意 — `NotificationTimeReasonCode` から `WaitClass` への対応表は、コンパイル時に網羅性を検査できる形にするべきだと思います。\n\n対象はタプル配列と `find` による対応処理です。理由コードを union に追加しても対応表の更新漏れを型検査で検出できず、新しいコードが semantic validation に届いて初めて例外になります。現在の八件はすべて正しく対応しているため、現行入力の誤動作ではなく、将来の更新漏れを防ぐ任意の保守性改善です。\n\nオブジェクトの対応表を `satisfies Record<NotificationTimeReasonCode, WaitClass>` で検査して参照する形にすると、理由コードを追加した時点で不足を検出できます。"
+      },
+      {
+        "id": "case_14",
+        "answer": "適用対象外です。依頼の中心は過去のレビューセッションの分析と、既存スキルの改善・評価であり、PR やコード差分そのものをレビューする依頼ではないためです。"
+      },
+      {
+        "id": "case_15",
+        "answer": "適用対象外です。このスキルが扱う PR 文案はコードレビューに続く作成・修正であり、今回の依頼はレビューと無関係に新機能の Draft PR をゼロから作成するものだからです。"
+      },
+      {
+        "id": "case_16",
+        "answer": "固定版 4.2.0 は空入力を拒否するため、この空配列を使った終了処理は失敗します。[公式の契約説明](https://github.com/example/encoder/issues/19#issuecomment-1234)では、最後の非空要素と同時に `finish=true` を渡す必要があります。最後の非空要素を処理する呼び出しで終了フラグを指定する形に変更すべきだと思います。"
+      }
+    ],
+    "final": [
+      {
+        "id": "case_01",
+        "answer": "1. 任意: 両経路の設定取得を try 前の const にまとめる整理は、そうすべきだと思います。\n\n対象は変更後の exportOne の `let settings` と `settings = assertPresent(...)`、および exportBatch の同じ二か所です。設定は開始前から存在し、prepare は同じオブジェクトを更新するため、設定の参照は prepare 前に取得できます。今回のインライン化で宣言と代入が分かれ、通信結果を受け取る bytes と、既存状態から取得する settings がともに外側の可変変数になっています。設定取得を try 前の `const settings = assertPresent(...)` にすれば、不要な可変性を減らし、生成失敗へ変換する範囲を明確にできます。変更前も fetchAsset 内の前提検査は呼び出し側の catch で捕捉されていたため、新たな誤分類という不具合ではなく、任意の整理としての指摘です。\n\nexportBatch では各ループ内の try 前に設定を取得してください。開始前の前提違反では進捗通知を行う契約がないため、この移動で finally を通らなくても要件に反しません。prepare とストリームの読み切りは try 内へ残し、bytes の let はその結果を後段で使うために残します。"
+      },
+      {
+        "id": "case_02",
+        "answer": "指摘はありません。\n\ngetInput と assertPresent は、どちらも失敗時の記録と同じ例外の再送出が必要であり、現在の try・catch はその契約を満たします。設定が input に依存しないことだけでは、設定取得を try 前へ移せません。取得順が変わり、前提検査の例外も記録されなくなるためです。取得時点とエラー処理を保つための外側の let を、可変変数であることだけを理由に修正対象にはしません。"
+      },
+      {
+        "id": "case_03",
+        "answer": "指摘はありません。\n\nfetchBytes の通信失敗だけを生成失敗結果へ変換し、save の失敗はエラーバウンダリへ伝える構造で、提示された責務分担を満たしています。bytes は try 内で初めて得られ、try 後の保存に必要です。この let をなくすためだけに補助関数を増やしたり、save を try 内へ移したりする修正は求めません。"
+      },
+      {
+        "id": "case_04",
+        "answer": "指摘はありません。\n\nsettings は prepare の返答後に初めて作られるため、開始前に取得できません。また、返答受理後の設定欠落も生成失敗結果へ変換する契約なので、assertPresent を現在の try 内に置くことが適切です。bytes と settings は try 内で得た後に save へ渡すため、この構造で外側の let を使うことに問題はありません。"
+      },
+      {
+        "id": "case_05",
+        "answer": "指摘はありません。\n\nparseSettings は利用者入力の検証であり、その失敗も通信失敗と同じ取得失敗結果にする契約です。設定不正、通信失敗、成功の全経路で finally が一度実行されるため、onAttemptFinished の要件も満たしています。parseSettings を try 前へ移すと、入力エラーの変換と通知の両方が失われます。settings と bytes の let を減らすためにこの範囲を変える修正は求めません。"
+      },
+      {
+        "id": "case_06",
+        "answer": "指摘はありません。\n\n最新の exportOne は、開始前から存在する設定を try 前で取得し、内部前提違反をエラーバウンダリへ伝えます。生成処理と読み切りの失敗は catch で処理し、保存はその外に置かれています。提示された方針に沿っています。exportLegacy は変更されず、呼び出し元と入力契約にも変更がないため、今回の PR の指摘対象には含めません。"
+      },
+      {
+        "id": "case_07",
+        "answer": "1. 任意: exportBatch の設定取得も各ループの try 前で const にする整理は、そうすべきだと思います。\n\n対象は exportBatch の `let settings` と `settings = assertPresent(state.items[key].settings)` です。設定は開始前から存在して置換されず、生成結果を待って取得する必要がありません。現在の構造では、既存設定の参照を得るだけの値にも外側の可変変数と try 内の代入が必要になり、通信結果との依存関係が読み取りにくくなっています。ループ内の try 前へ `const settings = assertPresent(...)` を移し、bytes の let と、prepare・読み切りの try 内処理は残す整理を勧めます。開始前の前提違反で onFinished を呼ぶ契約はないため、この移動による通知の追加は不要です。新たに到達する誤動作は提示資料から確認できず、重大度は任意です。\n\nexportRemote には指摘はありません。設定は remotePrepare の返答で初めて作られ、欠落も生成エラーにする契約なので、同じ整理を適用せず、設定取得を try 内に残します。"
+      },
+      {
+        "id": "case_08",
+        "answer": "指摘はありません。\n\n既存設定の前提検査は try 前にあり、その違反はエラーバウンダリへ伝わります。prepare に加え、ストリームを読み切る arrayBuffer でも通信失敗が起こるため、両方を現在の try 内に置く必要があります。bytes は読み切り後に初めて得られ、try 外の save で使うため、この let を残す構造も妥当です。"
+      }
+    ]
+  }
+}
