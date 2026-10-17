@@ -1,0 +1,102 @@
+{
+  "skill_name": "manage-development-with-codex",
+  "session_id": "01a149bd-f225-7183-9986-16e81f006526",
+  "findings_source": "../../refined-codedesign-hiho/evals/session-01a149bd-f225-7183-9986-16e81f006526.json",
+  "change_decisions": [
+    {
+      "finding_ids": [
+        "F-3"
+      ],
+      "skill_name": "manage-development-with-codex",
+      "decision": "strengthen",
+      "section": "順次実行と検証",
+      "before": "既定ブランチ同期とローカルHEAD・PR head照合は要求するが、現在の競合再現に使うPR情報のbaseと公開先端の不一致を扱っていない。",
+      "after": "取り込み対象の公開先端を照合し、不一致時は最新先端で再現して両コミットを実装・レビューへ引き継ぐ。",
+      "scope": "現在の競合を解消する依頼だけ。既定以外のブランチも対象とし、過去の固定版比較やGit未許可の説明には広げない。"
+    }
+  ],
+  "cases": [
+    {
+      "id": "manage_original_conflict_baseline",
+      "skill_name": "manage-development-with-codex",
+      "kind": "元依頼",
+      "finding_ids": [
+        "F-3"
+      ],
+      "prompt_lines": [
+        "実際のツールやsubagentは起動せず、開発管理の次の判断と代表的な委任文を模擬してください。依頼は『PRの現在のコンフリクトの直し方をコード案として提案し、実装せず待機。finegrainedで、既存worktreeを使う』です。担当報告は、worktreeはclean、ローカルHEADと公開headはH、PR APIのbase SHAはB1、同期済みupstream/mainと公開branches/mainの先端はB2、PRのbase refはmainです。HとB1のmerge-treeは競合なしですがGitHubはCONFLICTING、HとB2は未照合です。HとB1とB2はいずれもローカルにあります。進捗の正本は既存worktree内です。"
+      ],
+      "assertions": [
+        "Hと現在のmain先端B2で競合を照合する限定調査を委任する",
+        "PR情報のB1だけで競合なしと結論しない",
+        "finegrainedを調査・設計の着手前から適用し、実装前待機を保つ",
+        "進捗の読み直しと更新を模擬し、新しい担当へ自己完結した依頼を渡す"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "H/B2の照合が先に必要だと思います。H/B1で競合なしという結果では現在の競合を確認できていません。模擬手順では、既存worktreeの進捗正本を委任直前に読み直し、報告後に基準を記録します。\n委任文：『新規Sol担当、gpt-6-sol/max、fork_turns:none。着手前にrefined-codedesign-hihoとrefined-fine-grained-coding-hihoを適用。既存worktreeでHとmain先端B2をmerge-treeで非破壊照合し、B1との違い、競合箇所、行番号を報告。再現した競合についてコード案と保持する分岐・エラー経路を示す。変更・merge・commit・pushはしない。他担当の変更を戻さない。』\n基準と競合の再現を確かめ、同じスキルを適用した独立レビュー後に案を提示し、実装せず待機します。"
+        },
+        "after": {
+          "passed": true,
+          "response": "模擬判断は、既存worktree内の進捗正本を再読し、H/B2の照合を先行させることです。そうすべきだと思います。B1との非競合は現在のmainの根拠になりません。\n委任案は新規Sol max、fork_turns:noneへ『HとB2を作業ツリーを変えず照合し、競合箇所、両側の意図、修正コード案、根拠位置を報告。refined-codedesign-hihoとrefined-fine-grained-coding-hihoを着手前に適用。既存worktreeを使い、他の変更を戻さず、実装・merge・commit・pushは行わない』です。報告後は正本を更新し、次の判断前に再読します。独立レビューにもH/B2と同じ指定を渡し、コード案の提示で待機します。"
+        },
+        "assessment": "両版ともH/B2の非破壊な照合を先行委任し、finegrainedの早期適用と進捗正本の再読・更新、実装前待機を含めた。"
+      }
+    },
+    {
+      "id": "manage_adjacent_nondefault_base",
+      "skill_name": "manage-development-with-codex",
+      "kind": "近接事例",
+      "finding_ids": [
+        "F-3"
+      ],
+      "prompt_lines": [
+        "ツールやsubagentは起動せず、次の判断と短い委任を模擬してください。PRの現在の競合解消は承認済みで、取り込み対象はrelease/2です。ローカルheadと公開PR headはHで一致します。準備スクリプトは既定mainをMまで同期済みです。PR情報のbase SHAはR1、公開release/2先端はR2で、R1とR2は異なります。作業ツリーに既存の変更はありません。現在の競合はまだ再現していません。実装と独立レビューへ渡す基準も示してください。"
+      ],
+      "assertions": [
+        "mainのMではなく取り込み対象release/2のR2とHを基準にする",
+        "公開先端とPR情報の差を確認し、両コミットを実装とレビューへ引き継ぐ",
+        "承認済み範囲で不要な再承認を求めない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "比較基準をHとrelease/2先端R2にそろえるべきだと思います。mainのMを同期したことやR1との比較だけでは、取り込み対象の現在の競合を確認できません。\n委任文：『新規Sol担当、gpt-6-sol/max、fork_turns:none。refined-codedesign-hihoを読み、R2をローカルにそろえてH/R2を非破壊照合。競合箇所、SHA、保持する仕様、修正範囲と受入条件を報告。他担当の変更を戻さず、公開状態を変えない。』\n委任直前に進捗正本を読み、結果を記録します。競合の再現と基準確定後は再承認を求めず、新規実装担当にrefined-coding-hihoと確定条件を渡します。局所検証後、新規独立レビュー担当へ同じ基準SHA、手修正差分、検証結果を渡し、対象外変更がなく受入条件を満たすか確認させます。"
+        },
+        "after": {
+          "passed": true,
+          "response": "模擬判断では、MやR1ではなく、取り込み先release/2のR2を基準にすべきだと思います。進捗正本を再読し、新規Luna max、fork_turns:noneへ『R2のローカル有無を確認し、必要ならrelease/2だけ取得。H/R2で現在の競合を再現し、範囲と根拠を報告。他の変更を戻さない』と委任します。報告で正本を更新し、未再現のまま実装へ進めません。\n基準と実装worktree、受入条件を確定した後、承認済みの範囲は再確認せず、新規実装担当へrefined-coding-hiho、H/R2、修正範囲、保持する挙動と局所検証を渡します。段階末の新規独立レビューにも同じ両コミット、差分と検証結果を渡し、競合解消と既存挙動を確認します。"
+        },
+        "assessment": "両版ともmainではなくrelease/2のR2とHを選び、同じ両コミットを実装・独立レビューへ渡し、承認済み範囲の再承認を求めなかった。"
+      }
+    },
+    {
+      "id": "manage_negative_readonly_snippet",
+      "skill_name": "manage-development-with-codex",
+      "kind": "対象外",
+      "finding_ids": [
+        "F-3"
+      ],
+      "prompt_lines": [
+        "ツールやsubagentを実際には起動せず、開発管理の判断と委任文を模擬してください。依頼は、提供済みの固定コード片でawaitとvoidの意味を読み取り専用で説明することだけです。PR、ブランチ、実装は対象外で、Git操作は許可されていません。必要なコードと呼び出し元は依頼文にそろい、変更は不要です。"
+      ],
+      "assertions": [
+        "読み取り専用の説明へ限定し、Git同期、PR照会、worktree準備を追加しない",
+        "実装や再承認を要求しない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "固定コードの読み取り説明を1タスクで完了させるべきだと思います。Gitの準備やworktree作成は許可範囲に入らず、同期スクリプトも実行しません。\n模擬委任文：『新規Luna担当、gpt-6-luna/max、fork_turns:none。提供コードと呼び出し元だけを使い、各awaitの後続開始条件、関数全体の完了条件、拒否の伝播先を説明。voidは呼び出し結果を捨てる演算で、処理の取消やエラー処理ではないことを区別する。コード・ファイルの変更、Git、外部調査は行わない。提供資料だけで根拠を示す。』\n作業ディレクトリ内の進捗正本を判断前に読み直す想定とし、報告を元の問いと照合して説明を返します。"
+        },
+        "after": {
+          "passed": true,
+          "response": "読み取り専用の1タスクで完了させるべきだと思います。Git許可がないので準備スクリプト、ブランチ同期、worktree作成を工程へ入れません。進捗正本の再読・更新も模擬として扱います。\n新規Luna max、fork_turns:noneへの委任文は『提供済みの固定コードと呼び出し元だけを使い、awaitが保証する内部順序、呼び出し側の完了範囲、拒否の伝播先を説明してください。対象は説明文のみで、コード変更、Git、外部調査は禁止。結論と対応するコード位置、資料から確定できない点を報告してください』です。範囲が確定した読み取りなので追加承認は求めず、資料との対応を独立確認して説明を返します。"
+        },
+        "assessment": "両版とも提供コードの説明へ限定し、Git同期やPR照会、worktree準備、実装と追加承認を求めなかった。"
+      }
+    }
+  ],
+  "final_state": "更新済み"
+}

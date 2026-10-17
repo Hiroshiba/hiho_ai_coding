@@ -1,0 +1,131 @@
+{
+  "skill_name": "refined-fine-grained-coding-hiho",
+  "session_id": "01a149bd-f225-7183-9986-16e81f006526",
+  "findings_source": "../../refined-codedesign-hiho/evals/session-01a149bd-f225-7183-9986-16e81f006526.json",
+  "change_decisions": [
+    {
+      "finding_ids": [
+        "F-1",
+        "F-2"
+      ],
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "decision": "strengthen",
+      "section": "非同期処理の順序と完了条件を分ける",
+      "before": "要素内の順序と全要素の同期点の区別はあるが、void呼び出しと関数内部の待機、通知の受信側の完了範囲は具体化されていない。",
+      "after": "状態を書き込む側から読者まで追い、末尾の拒否伝播を含むawaitの目的を区別する。通知を送信APIから受信ハンドラーまで追い、DOM観測をOS描画の要件へ昇格させない。",
+      "scope": "初期化・起動処理のawait判断、画面表示等の通知を待機条件へ加える変更。既存の要素ごとの順序規則を残す。"
+    }
+  ],
+  "cases": [
+    {
+      "id": "fine_original_ipc_completion",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "元依頼",
+      "finding_ids": [
+        "F-1",
+        "F-2"
+      ],
+      "prompt_lines": [
+        "Welcome起動の待機が必要な理由を細やかに検討してください。store.startupはvoidで呼ばれ、内部はvoid applyTheme().then(() => { void displayReady(); }); await fetchInfos(); if (isWindows) { await installAndLaunch(); }です。fetchInfosはcurrentとlatestを状態へ保存し、installAndLaunchは両方を読んで判定します。表示APIはipcRenderer.invoke('DISPLAY_READY')を返し、受信ハンドラーはwelcomeWindow.show()を呼んで戻ります。Windows E2Eは進捗のdivの可視性とmain画面を確認します。描画完了を導入前に保証する仕様はありません。各awaitをどう判断し、何をどこまで確認できるかをコードの接続関係から説明してください。操作は不要です。"
+      ],
+      "assertions": [
+        "呼び出し元がvoidでも内部の情報取得待ちが必要だと説明する",
+        "末尾awaitの拒否伝播と状態のための待機を区別する",
+        "送信からハンドラーのshowまで追い、返信は描画完了を保証しないとする",
+        "進捗DOMの確認をOS描画や新しい同期要件へ昇格させない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "fetchInfosのawaitは必須だと思います。currentとlatestの状態書き込みを完了させてから、その両方を読むinstallAndLaunchへ進むためです。テーマ側はapplyTheme完了後にdisplayReadyを送る連鎖で足り、取得や導入の開始条件へ加える必要はありません。invokeの完了が示すのは受信ハンドラーがshow()を呼んで戻ったことまでで、初回描画の完了ではありません。末尾のawait installAndLaunchもstartupの完了と失敗を導入へ結び付ける既存契約として維持します。呼び出し元のvoidは内部の順序を消しません。既存E2Eは進捗divの可視性と最終画面を確認できますが、OSの描画完了や導入前の描画順序までは証明できません。"
+        },
+        "after": {
+          "passed": true,
+          "response": "fetchInfosのawaitは必要だと思います。currentとlatestの保存後にだけ、両状態を読むinstallAndLaunchを始める接続になっています。呼び出し元がvoidでも、この内部依存は消えません。末尾awaitは後続の読取のためではありませんが、導入完了・拒否をstartupのPromiseへ伝える既存の範囲を保つため残すべきだと思います。\nテーマ後のthenはテーマ→表示命令の順序を作ります。displayReadyのinvoke応答が保証するのは、受信ハンドラーがshow()を呼んで戻るまでです。初回描画完了ではなく、応答待ちを導入の条件にする依存も資料にはありません。Windows E2Eで確認できるのは進捗divの可視性と最終mainです。OSの描画完了や導入前の表示応答待ちを必須とする根拠にはなりません。"
+        },
+        "assessment": "両版とも状態の読者を根拠に情報待ちを保持し、末尾の拒否伝播、IPCハンドラーのshow、DOM観測とOS描画の違いを説明した。"
+      }
+    },
+    {
+      "id": "fine_adjacent_queued_ack",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "近接事例",
+      "finding_ids": [
+        "F-2"
+      ],
+      "prompt_lines": [
+        "exportJobのawaitが何を保証するかを調べた結果から、説明と設計判断を示してください。APIはIPCを送り、ハンドラーはqueue.push(job); return job.id;です。別のworkerが後からファイルを書き出します。呼び出し側はawait exportJob(); openOutputFile();に変える案です。利用者の目的は完成したファイルを開くことで、キュー登録だけでは足りません。既存にworkerのexportCompletedイベントがあります。提供資料以外の調査や操作は不要です。"
+      ],
+      "assertions": [
+        "IPC応答がキューへの受付までで、ファイル完成ではないことを区別する",
+        "実際の完了を知らせる既存イベントへ接続する方向を示す",
+        "単にawaitを追加するだけで完成を保証したとしない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "await exportJob()が待つのは、IPCハンドラーによるキュー登録とjob.idの返信までです。ファイル出力は別workerの後続処理なので、直後にopenOutputFile()を呼ぶ案は採用しない方が良いと思います。送信前に既存exportCompletedの購読を始めて完了通知を保持し、返却されたjob.idと対応する完了を待ってからファイルを開く設計にします。登録応答後に購読を始めると、速いworkerの通知を逃すためです。確認対象は、出力完了前には開かないこと、別ジョブの完了では開かないこと、返信より早い完了も取り逃がさず、完成したファイルを開けることです。"
+        },
+        "after": {
+          "passed": true,
+          "response": "await exportJob()が保証するのは、ハンドラーがキューへ登録してjob.idを返すまでです。別workerのファイル書出し完了は含まれません。その直後にopenOutputFile()を呼ぶ案は、未完成または未作成のファイルを開き得るため採用しない方が良いと思います。\n返されたIDに対応する既存exportCompletedを待ってから開く設計にします。イベントの購読はexportJobより前に始め、応答より先に届いた完了も保持して照合します。対象jobをイベントで識別できることを成立条件とします。確認対象は登録応答直後には開かないこと、対象の書出し完了後に開くこと、他jobの完了や早い完了通知を取り違えないことです。"
+        },
+        "assessment": "両版ともキュー登録の返信とファイル完成を区別し、既存完了イベントの事前購読とjobの照合を選んだ。"
+      }
+    },
+    {
+      "id": "fine_negative_draw_requirement",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "適用条件の反例",
+      "finding_ids": [
+        "F-2"
+      ],
+      "prompt_lines": [
+        "自動処理開始前にプレビューの初回描画を必ず完了させる製品要件があります。showPreviewは表示命令のIPC応答を返します。別の既存previewPaintedイベントは対象プレビューの初回描画完了を通知します。loadDataと描画完了の両方を満たしてからrunを始めたいです。待機関係のコード案と確認範囲を示してください。操作は不要です。"
+      ],
+      "assertions": [
+        "描画完了の明示要件を守り、previewPaintedを待つ",
+        "IPC応答だけを描画完了としない",
+        "必要なデータと描画の合流を禁止しない",
+        "描画イベントを取り逃がさない登録順序を保つ"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "初回描画完了の待機は必須だと思います。IPC応答だけでは製品要件を満たせません。\n```ts\nconst painted = waitForTargetPreviewPainted();\nawait Promise.all([loadData(), showPreview(), painted]);\nawait run();\n```\nwaitForTargetPreviewPaintedは、対象プレビューの既存previewPaintedイベントを待つ処理を表すコード案です。表示命令より前に購読を登録して取り逃しを防ぎ、データ取得と描画完了の両方が成功してからrunを開始します。確認対象は両完了前のrun抑止、即時通知、別プレビューの通知の除外です。表示命令の応答と対象の初回描画完了を分けて確認します。"
+        },
+        "after": {
+          "passed": true,
+          "response": "初回描画は明示要件なので、既存previewPaintedを同期点に使うべきだと思います。以下のwaitForPreviewPaintedは、対象プレビューの既存イベントを一度待つ処理の略記です。\n```ts\nconst painted = waitForPreviewPainted(previewId);\nawait Promise.all([\n  loadData(),\n  showPreview(previewId),\n  painted,\n]);\nawait run();\n```\n購読をshowPreviewより前に登録し、対象の初回描画だけを受けます。showPreviewのIPC応答だけでは描画要件を満たしません。確認対象はデータ先行と描画先行の両方でrunが両完了後になること、対象一致、データ取得や表示命令の失敗時にrunしないことです。DOM可視性だけを描画完了の代用にはしません。"
+        },
+        "assessment": "両版とも描画完了の明示要件に既存イベントを使い、表示命令より前に購読し、データとの必要な合流を保持した。"
+      }
+    },
+    {
+      "id": "fine_regression_per_item_order",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "既存判断の回帰",
+      "finding_ids": [],
+      "prompt_lines": [
+        "既存はawait Promise.all(items.map(async item => { await loadCurrent(item); await loadLatest(item); }));です。変更案はawait Promise.all(items.map(loadCurrent)); await Promise.all(items.map(loadLatest));です。画面は各itemのlatestがそろった順に表示する仕様で、各latestは同じitemのcurrentを必要とします。他itemのcurrent待ちは要件ではありません。両案の開始可能順序と遅いitemがある場合の違いを説明し、採否を判断してください。操作は不要です。"
+      ],
+      "assertions": [
+        "要素内の順序と全体の同期点を区別する",
+        "変更案で遅い別要素にlatest開始が引きずられると説明する",
+        "既存の要素ごとの反映を維持する"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "変更案は採用しない方が良いと思います。既存は全itemのcurrentを開始し、Aのcurrentが終われば、Bのcurrentが未完了でもAのlatestを開始できます。変更案は全currentの完了が同期点となり、最も遅いitemが終わるまで、どのlatestも開始できません。例えばAの取得が速くBが遅い場合、既存ならAを先に表示でき、変更案ではAもB待ちになります。currentが一件失敗した場合も、変更案ではlatest段階全体へ進めなくなります。必要なのは同じitem内のcurrent→latestであり、他itemとの同期は不要です。既存の入れ子を保ちます。"
+        },
+        "after": {
+          "passed": true,
+          "response": "変更案は採用しない方が良いと思います。既存はAのcurrent完了後にAのlatest、Bのcurrent完了後にBのlatestをそれぞれ開始でき、外側のPromise.allは全itemの組の完了を待ちます。変更案は全currentの成功を待ってからlatest群を開始します。\nAのcurrentが早く終わっても、遅いBのcurrentを待ってAのlatestまで遅れ、準備できたitemから表示する応答性を失います。またBのcurrent失敗時、既存ではAのlatestが進み得ますが、変更案ではlatest群が一つも始まりません。同item内の依存だけが要件なので、全item間の同期点を追加せず、既存の入れ子を維持します。"
+        },
+        "assessment": "両版とも要素内と全体の同期点を区別し、遅い別要素や失敗がlatest群へ波及する差を説明して既存の入れ子を保持した。"
+      }
+    }
+  ],
+  "final_state": "更新済み"
+}
