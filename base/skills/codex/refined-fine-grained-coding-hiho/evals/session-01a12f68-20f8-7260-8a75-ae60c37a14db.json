@@ -1,0 +1,253 @@
+{
+  "session_id": "01a12f68-20f8-7260-8a75-ae60c37a14db",
+  "skill_name": "refined-fine-grained-coding-hiho",
+  "source_logs": [
+    "/home/hihok/.codex/sessions/2026/10/12/rollout-2026-10-12T18-18-35-01a12f68-20f8-7260-8a75-ae60c37a14db.jsonl",
+    "/home/hihok/.codex/sessions/2026/10/12/rollout-2026-10-12T18-20-01-01a12f68-20f8-7260-8a75-ae60c37a14db_01a12f69-6fcc-7f83-9114-de13ac0bce61.jsonl",
+    "/home/hihok/.codex/sessions/2026/10/19/rollout-2026-10-19T00-15-14-01a12f68-20f8-7260-8a75-ae60c37a14db_01a14f94-ce2d-7282-8452-ed08e5e3b945.jsonl"
+  ],
+  "cases": [
+    {
+      "id": "fine_original_typography",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "元依頼の表現比較",
+      "finding_ids": [
+        "F-4"
+      ],
+      "prompt_lines": [
+        "カード内の選択欄見出しを、周囲のやり方に合わせて提案してください。参考HTMLよりリポジトリの一貫性を優先します。今回自分が追加したlegendは本文サイズ・本文色・font-weight:600です。比較した既存のフォーム・詳細欄の見出し15箇所はheadline-2を使い、定義はfont-size:1.25rem、font-weight:bold、line-height:1.6、margin:0です。既存の画面主見出しheadline-1は600、カードの項目名にも600が5宣言あります。今回の選択欄はエンジン名より小さくしたく、サイズを本文のまま保つことは了承済みです。既存例をどう比較し、何を採用するか、変更案を示してください。操作は不要です。"
+      ],
+      "assertions": [
+        "自分の600を既存前例として維持せず、同じ役割のboldへ合わせる案を選ぶ",
+        "headline-2のサイズ・行高・marginまで機械的にコピーしない",
+        "他の役割に600が存在することと今回の採用理由を区別する"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": false,
+          "response": "比較対象は、同じ役割のフォーム・詳細欄の見出しを優先すべきだと思います。headline-1は画面全体の主見出し、カードの項目名は値のラベルなので、600という数値だけを一致の根拠にはしません。自分が追加したlegendも既存傾向の集計から外します。\n\n提示された15箇所の同種見出しはheadline-2です。採用案は、この見出し指定を使い、了承済みの例外であるサイズだけを本文サイズへ上書きする形です。現行のfont-weight:600は削除し、headline-2のboldを使います。本文色は維持し、共有されるline-height:1.6とmargin:0は見出し指定に従います。\n\n局所的な変更で示すと、太さの差分は次です。\n\n```diff\n- font-weight: 600;\n+ font-weight: bold;\n```\n\n実装時は同じ宣言を複製するより、既存のheadline-2の適用方法へ揃え、サイズの上書きだけを選択欄側に置く方がよいと思います。1.25remまで一律に移すと、エンジン名より小さくする了承済み条件を失います。確認するのは、本文サイズと本文色の維持、エンジン名との大小、同種見出しに合う太さと行間です。参考HTMLや、役割の異なる600の件数を理由に現行値を残す案は採りません。"
+        },
+        "assessment": "旧版は太さをboldへ変更する点は正しいが、headline-2を適用してサイズだけを上書きし、行高1.6とmargin:0も取り込む方針にした。役割が同じことだけでは、それらも変更する必要性を示さない。試作版はサイズ・太さ・色・余白を分け、太さだけを変更して周囲と合わせた。",
+        "after": {
+          "passed": true,
+          "response": "本文サイズを保ち、太さをboldへ合わせるべきだと思います。比較の基準は、今回の選択欄見出しに役割が近いフォーム・詳細欄の見出しです。\n\n15箇所のheadline-2は、サイズ1.25rem、太さbold、行高1.6、余白0です。今回追加したlegendの600は採用済みの前例には数えません。headline-1の600は画面主見出し、項目名の600は値に添えるラベルであり、宣言数だけで選択欄見出しの太さを決めません。\n\nサイズはエンジン名より小さくするため本文サイズの維持が了承済みです。ここは既存見出しとの差として残し、太さだけを近い役割へそろえます。headline-2の提示された定義には色指定がないので、本文色を変更する根拠はありません。行高と余白は独立に比較し、既存のlegendの値が未提示のため、この変更にまとめて追加しません。\n\n変更案は現在のlegendの指定中、次の一行です。\n\n```scss\nfont-weight: bold;\n```\n\nheadline-2を丸ごと適用すると承認済みのサイズも変わります。mixinを追加してサイズを打ち消す案より、必要な差だけを採る方が変更を絞れると思います。最終的には本文サイズ、本文色、太さ、既存の行高・余白の対応をそれぞれ確認します。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      },
+      "final_evaluation": {
+        "before": {
+          "passed": true,
+          "response": "そうすべきだと思います。比較の軸は見出しの役割で、同じフォーム・詳細欄の15箇所を基準にします。画面主見出しとカード項目名の600は役割が異なるため、今回の600を採用する理由にはしません。本文サイズの維持は了承済みの差として残し、太さをboldへ変更します。本文色にも変更理由は示されていないため維持します。変更案はlegendのfont-weight:600をfont-weight:boldへ置き換える形です。headline-2を一括適用するとサイズまで変わるため、適用するなら本文サイズで上書きする必要があります。行高1.6とmargin:0については現行との差が提示されていないため、太さの統一だけを理由に追加するとは決めません。"
+        },
+        "after": {
+          "passed": true,
+          "response": "太さはboldへ揃えるのが、証拠があってそうすべきです。[依頼文](/tmp/hiho_refine_01a12f68/final_inputs.json:6)にあるフォーム・詳細欄の見出し15箇所を、今回と役割が近い比較元にします。headline-1やカード項目名の600は役割が異なり、今回追加した600も既存例には数えません。\n\nサイズは了承済みの本文サイズを維持します。色はheadline-2の提示定義に指定がなく、変更する根拠がないため本文色を維持します。行高1.6とmargin:0は現状値が示されていないため、必要な差を判断できません。mixin全体の適用とサイズ上書きではそれらの指定も入るので、今回の変更案はlegendのfont-weight:600をfont-weight:boldへ置き換えることに絞ります。行高・余白は独立に現状と照合する対象です。"
+        },
+        "assessment": "最小化した規則で再評価した結果、新版は太さだけの変更へ絞った。旧版も今回は行高と余白を未確定として同じ判断を行ったため、初回の差が安定して再現するとは確認できない。"
+      }
+    },
+    {
+      "id": "fine_adjacent_ui_wording",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "近接事例",
+      "finding_ids": [
+        "F-5"
+      ],
+      "prompt_lines": [
+        "初期設定カードの通常本文を『設定します』『設定できます』『設定してください』のどれにするか調査・提案します。docsの明文は『です/ます調』『ツールチップは〜できます。』だけです。本文の例は、方式選択の下に『この方式で接続します。』、任意機能の紹介に『共有できます。』、初期設定上部に『接続を設定してください。』、howtouseに『機能を試してみてください。』があります。できますは全体で20件、してくださいは3件です。今回は設定候補を選んでボタンを押すカードで、ユーザーは次の行動を促す文として『設定してください』を選択済みです。表現の比較方法と採用案を示してください。操作は不要です。"
+      ],
+      "assertions": [
+        "件数だけで選ばず各文の役割を対応付け、tooltip専用規則を本文へ強制しない",
+        "ユーザーが選択したしてくださいを採用し、必須操作だけの語尾という普遍化をしない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "通常本文は、ユーザーが選択した「設定してください」を採用すべきだと思います。候補を選び、ボタンを押す次の行動を促す文という役割に合っています。\n\n比較は文の役割と表示位置を揃えて行います。「この方式で接続します。」は選択結果の説明、「共有できます。」は任意機能の紹介、「接続を設定してください。」は初期設定での行動案内です。今回の本文には、最後の例が最も近い比較対象になります。howtouseの「試してみてください」も依頼表現の例ですが、案内する行動と画面の文脈を区別します。\n\n「できます」が20件あることは全体の件数であり、通常本文の行動案内にも採用すべきという規則にはなりません。docsの「ツールチップは〜できます。」もツールチップの範囲に適用し、カード本文へ広げません。「です/ます調」と今回の丁寧な依頼表現は両立します。\n\n設定内容を説明するなら「設定します」、利用可能性を知らせるなら「設定できます」、操作を促す今回の本文なら「設定してください」と比較します。新しい全体規約を作らず、文言を採用し、案内する操作と実際の候補欄・ボタンが対応していることを確認します。"
+        },
+        "assessment": "両版とも語尾を場面ごとに比較し、tooltip専用規則を本文へ強制せず、ユーザーの選択を優先した。",
+        "after": {
+          "passed": true,
+          "response": "通常本文は、ユーザーが選択した「設定してください。」を採用します。次の行動を促すという今回の役割にも合うと思います。\n\n比較では語尾の件数ではなく、その文を読む場面と利用者に伝える内容を対応付けます。「この方式で接続します。」は選択した方式の動作結果、「共有できます。」は任意機能の利用可能性、「接続を設定してください。」は初期設定での行動依頼です。howtouseの「試してみてください。」も行動を促しますが、手順説明という文脈の差があります。\n\n今回のカードは、候補を選びボタンで設定する行動を促すため、「設定してください。」が近い例です。「設定します。」は実行内容を説明したい場合、「設定できます。」は選択肢や機能を案内したい場合に対応します。\n\ndocsの「です/ます調」は各案に適用できます。一方、「ツールチップは〜できます。」は適用先が限定された規則なので通常本文へ広げません。20件対3件という件数だけでも優先順位は決まりません。\n\n明示された文言の選択を優先し、通常本文全体を「できます」や「してください」へ統一する方針は追加しません。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    },
+    {
+      "id": "fine_adjacent_branch_order",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "近接事例",
+      "finding_ids": [
+        "F-6"
+      ],
+      "prompt_lines": [
+        "表示生成関数を細やかに読みやすくしてください。currentは {status:'absent'} | {status:'installed';version:string}、latestVersionはstring、justSucceededとbusyはbooleanです。現行はconst outdated=current.status==='installed' && semver.lt(current.version,latestVersion); if(current.status==='installed' && !outdated && justSucceeded){return completed;} const size=formatSize(files.reduce(...)); if(current.status==='absent'){return install(size,busy);} if(outdated){return update(size,busy);} return reinstall(size,busy); です。formatSizeとreduceは副作用がなく数件の計算、返却する表示値は保存しません。挙動を保った短いコード案と得失を示してください。操作は不要です。"
+      ],
+      "assertions": [
+        "未導入を先にreturnし、その後の型絞り込みで直接versionを比較する順を示す",
+        "更新を成功直後より優先する現行契約を保ち、outdatedと複合条件を減らす",
+        "安価な容量計算を成功直後でも行う得失を示す"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "未導入から順に条件を絞る形へ整理すべきだと思います。小さく副作用のないサイズ計算を先に置けば、installedとoutdatedの重複確認を外せます。\n\n```ts\nconst size = formatSize(files.reduce(...));\nif (current.status === \"absent\") {\n  return install(size, busy);\n}\nif (semver.lt(current.version, latestVersion)) {\n  return update(size, busy);\n}\nif (justSucceeded) {\n  return completed;\n}\nreturn reinstall(size, busy);\n```\n\nabsentの枝を抜けた後はinstalledなので、versionを直接参照できます。更新が必要ならjustSucceededより先にupdateを返し、更新不要で成功直後だけcompleted、それ以外はreinstallという優先順位を保ちます。busyの渡し先も変わりません。\n\n得られるのは、各分岐で満たされた前提が明確になり、outdatedという中間値と複合条件が消えることです。代わりにcompletedでもサイズを計算しますが、提示された規模と純粋性なら挙動上の差はありません。ここで計算を遅延させる関数や保存状態を足すより、短く直接読める分岐を優先する方がよいと思います。未導入、旧版、成功直後、それ以外をbusyの両値で照合できます。"
+        },
+        "assessment": "両版とも未導入を先に除外して型を絞り、安価な計算の共有と優先順位の保持を説明した。",
+        "after": {
+          "passed": true,
+          "response": "未導入、更新対象、成功直後、再インストールの順に分岐する案がよいと思います。安価なサイズ計算を共有すると、installedとoutdatedの複合条件をなくせます。\n\n```ts\nconst size = formatSize(files.reduce(...));\nif (current.status === \"absent\") {\n  return install(size, busy);\n}\nif (semver.lt(current.version, latestVersion)) {\n  return update(size, busy);\n}\nif (justSucceeded) {\n  return completed;\n}\nreturn reinstall(size, busy);\n```\n\n最初の分岐を通過した時点でcurrentはinstalledへ絞られ、versionを直接使えます。旧版ならjustSucceededに関係なくupdateを返し、同版以上で成功直後ならcompleted、それ以外はreinstallを返すため、元の優先順位を保ちます。busyはinstall・update・reinstallへ同じように渡し、completedの条件には加えません。\n\n得られるのは、判定用のoutdated変数と繰り返すinstalled判定を減らせることです。代わりにcompletedでもサイズを計算しますが、提示条件では副作用のない数件の計算なので、分岐を素直に読める利点を採れると思います。高価な計算や副作用のある処理を同様に移す判断には広げません。表示値の保存状態も増やしません。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    },
+    {
+      "id": "fine_negative_scoped_class",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "適用条件の反例と既存判断の回帰",
+      "finding_ids": [
+        "F-10"
+      ],
+      "prompt_lines": [
+        "Vue部品内部の長いclass接頭辞を短くする案を判断してください。scoped styleですが、この部品の子要素クラスを親の:deepセレクターとE2E locatorが参照しています。リポジトリには短い役割名と長い接頭辞の両方式があり、この部品の系列は外部参照の契約として接頭辞を統一する明文規則があります。今回は表示文言1行だけの変更で、class変更は要件にありません。操作は不要です。"
+      ],
+      "assertions": [
+        "scopedだけを根拠に短縮せず、外部参照と明文方針を保ち、不要な改名を含めない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "接頭辞は維持すべきだと思います。scoped styleでも、親の:deepセレクターとE2E locatorが子要素のclassを参照しており、この系列には接頭辞を契約として揃える明文規則があります。\n\n今回の対象は表示文言1行です。その文言だけを変更し、classの短縮は含めません。短い役割名が他の部品に存在することより、この部品の参照関係と系列の規則を優先します。改名する別の必要が生じた場合には、親とE2Eを含む契約全体の変更として扱います。"
+        },
+        "assessment": "両版ともscopedだけを理由にclassを短縮せず、外部参照と明文方針を維持した。",
+        "after": {
+          "passed": true,
+          "response": "classの接頭辞は変更しない方がよいと思います。この部品系列には外部参照の契約として接頭辞を統一する明文規則があり、親の:deepとE2E locatorも参照しています。scopedであることは外部参照がない根拠になりません。\n\n今回は要件どおり表示文言の一行だけを変更対象にします。別系列の短い役割名を理由に、今回の部品の契約を変える必要はありません。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    },
+    {
+      "id": "fine_adjacent_style_dimensions",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "近接事例",
+      "finding_ids": [
+        "F-4"
+      ],
+      "prompt_lines": [
+        "一覧内のグループ見出しを周囲へ揃える提案をしてください。今回自分が追加した見出しは本文サイズ、font-weight:500、line-height:1.3、margin-block:4pxです。既存の同じ役割の見出しはsection-captionを使い、定義はfont-weight:bold、font-size:1.1rem、line-height:1.6、margin-block:16pxです。画面全体ではバッジに500を使う例が8件あります。この一覧では行間とグループ間隔を現在のままにし、本文サイズも維持する要件があります。何を根拠にどの指定を変えるか、短く提案してください。操作は不要です。"
+      ],
+      "assertions": [
+        "同じ役割の既存例を根拠に太さだけをboldへ揃える",
+        "バッジの500を根拠に自分の500を残さず、mixinのサイズ・行高・余白を持ち込まない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "font-weightだけをboldへ揃えるのがよいと思います。同じ役割の既存見出しが使うsection-captionを比較の基準にします。バッジの500は別の役割の指定なので、使用件数が多くてもグループ見出しの太さを決める理由にはしません。一方、本文サイズ、line-height:1.3、margin-block:4pxの維持は明示された要件です。したがって変更案はfont-weight:500をfont-weight:boldへ置き換え、残る3項目を維持する形です。section-captionの全面適用はサイズ・行高・間隔を変えるため、今回の要件には合いません。mixinを適用して3項目を上書きするより、必要な太さだけを揃える方が変更の目的を読み取りやすいと思います。"
+        },
+        "after": {
+          "passed": true,
+          "response": "font-weightだけboldへ変更するのが、証拠があってそうすべきです。[依頼文](/tmp/hiho_refine_01a12f68/final_inputs.json:13)では、同じ役割の見出しがboldを採用し、本文サイズ・行高・グループ間隔の維持が要件になっています。\n\n比較は宣言数ではなく役割と指定ごとに行います。バッジ8件の500はグループ見出しの根拠にはせず、今回追加した500も前例に数えません。サイズは本文のまま、line-height:1.3、margin-block:4pxを維持します。section-captionをそのまま適用すると維持要件に反するため、mixin全体の適用や適用後の打ち消しではなく、既存の見出し指定のfont-weight:500をfont-weight:boldに置き換える案です。"
+        },
+        "assessment": "両版とも同じ役割の太さだけを採り、維持するサイズ・行高・間隔を変えなかった。",
+        "phase": "最終案の新旧比較"
+      }
+    },
+    {
+      "id": "fine_negative_full_mixin_requested",
+      "skill_name": "refined-fine-grained-coding-hiho",
+      "kind": "適用条件の反例",
+      "finding_ids": [
+        "F-4"
+      ],
+      "prompt_lines": [
+        "画面の小見出しを既存のsection-captionへ統一する提案をしてください。ユーザーは太さ、サイズ、行高、余白をそのmixinへ揃えると明示しました。section-captionの定義はfont-weight:bold、font-size:1.1rem、line-height:1.6、margin:0で、同じ役割の周囲もすべてそのmixinです。現行の独自指定を残す要件はなく、副次的な指定もありません。変更案を短く示してください。操作は不要です。"
+      ],
+      "assertions": [
+        "指定された各プロパティを満たすmixin全体の利用を認め、太さだけの変更へ不必要に制限しない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "既存のsection-captionをそのまま適用するのがよいと思います。変更案は、小見出しへsection-captionのmixinを適用し、太さ・サイズ・行高・余白を定める独自指定を削除する形です。結果はfont-weight:bold、font-size:1.1rem、line-height:1.6、margin:0になります。4項目すべてを揃えることが明示され、同じ役割の周囲もこのmixinを使っているため、個別指定を残す理由はありません。mixin適用後にサイズや余白を上書きせず、既存見出しと同じ定義へまとめます。独自指定を併存させないことで、今後section-captionが調整された際にも、小見出しへ同じ変更が届く形にします。"
+        },
+        "after": {
+          "passed": true,
+          "response": "section-captionのmixin全体へ置き換えるのが、証拠があって必須です。[依頼文](/tmp/hiho_refine_01a12f68/final_inputs.json:20)で太さ・サイズ・行高・余白をすべて揃えることが明示され、同じ役割の周囲もそのmixinで統一されています。\n\n変更案は、小見出しの独自の文字・余白指定を削除し、周囲と同じ書式でsection-captionを適用することです。結果はfont-weight:bold、font-size:1.1rem、line-height:1.6、margin:0になります。副次的な指定もなく、独自値を残す要件もないため、一部の宣言だけ取り出したり、適用後に元の値へ上書きしたりする理由はありません。これで指定された四つの値とmixinの利用方法を一緒に揃えられます。"
+        },
+        "assessment": "両版とも明示要件に従いmixin全体を使った。部分指定の比較を、mixinの全面禁止へ広げていない。",
+        "phase": "最終案の新旧比較"
+      }
+    }
+  ],
+  "change_decisions": [
+    {
+      "finding_id": "F-4",
+      "decision": "strengthen",
+      "section": "差分の基準と、揃える既存実装を決める",
+      "before": "方式の傾向と自分の変更を分ける指示はあったが、同じ役割のmixinからサイズ以外の指定まで移す判断を止められなかった。",
+      "after": "役割の近い既存例のサイズ・太さ・色・余白を別々に照合し、自分の追加指定にも比較を行い、mixinの付随する指定と必要な差だけを採る案を比較する。",
+      "reason": "ユーザーが採用した太さだけの変更に対応し、同じ条件の評価で不要な行高・余白の変更を避けた。"
+    },
+    {
+      "finding_id": "F-2/F-3/F-5/F-6",
+      "decision": "no-change",
+      "reason": "同じ入力の比較では旧版も必要な判断を行えた。関連computed、履歴の所有先、文言の場面、分岐順に関する追記を除き、既存の判断基準を維持する。"
+    }
+  ],
+  "generalization_judgment": "そうすべきだと思う。採用された具体的な修正から条件付きの手順へ一般化した判断であり、普遍的な必須規約をユーザーが宣言したという意味ではない。",
+  "findings_source": "../../refined-codedesign-hiho/evals/session-01a12f68-20f8-7260-8a75-ae60c37a14db.json",
+  "trial_change_decisions": [
+    {
+      "finding_id": "F-4/F-5",
+      "decision": "strengthen",
+      "section": "揃える既存実装の比較",
+      "change": "役割とプロパティ、文の場面、規約の適用範囲を個別に照合する"
+    },
+    {
+      "finding_id": "F-2/F-3",
+      "decision": "strengthen",
+      "section": "型と関数の使われ方",
+      "change": "computedから利用先への依存と、表示履歴の寿命・結果契約を照合する"
+    },
+    {
+      "finding_id": "F-6",
+      "decision": "strengthen",
+      "section": "条件を直接読める分岐",
+      "change": "型絞り込みの順と安価な表示計算の得失を比較する"
+    }
+  ],
+  "validation": {
+    "method": "公式skill-creatorの独立評価。旧版と試作版を別の新規コンテキストへ渡し、同じ19件の入力へ回答させた。評価対象には期待する答え・根拠となる過去ログ・合否条件を渡していない。親が事前のassertionsに照らして成果を評価した。",
+    "before_agent": "/root/skill_baseline_eval",
+    "trial_after_agent": "/root/skill_updated_eval",
+    "before_passed": 3,
+    "trial_after_passed": 4,
+    "boundary": "模擬の設計・実装案・委任文・レビュー出力による評価。実際のプロダクト実装、画面操作、テスト、Git操作、外部投稿は行っていない。各条件を1回ずつ試した結果であり、改善率を統計的に保証するものではない。",
+    "structure_validation": "公式quick_validate.pyで5スキルの試作版がすべて成功。対象プロジェクトの仮想環境にはPyYAMLがなく、同じ検証スクリプトをPyYAMLのあるシステムPythonからuvで実行して復旧した。",
+    "invocation": "既存のdescriptionと呼び出し方針は変更しない。",
+    "final_revision": {
+      "method": "他の試作規則を除いた最終案を、別々の新しいコンテキストへ渡して元事例・近接事例・反例の3件を比較した。期待する答えは渡していない。",
+      "before_agent": "/root/minimal_baseline_eval",
+      "after_agent": "/root/minimal_updated_eval",
+      "before_passed": 3,
+      "after_passed": 3,
+      "retained_basis": "元セッションの明示的な指摘と採用された局所修正、初回比較で観測された付随指定の取り込みを根拠に、役割と指定ごとに照合する一段落だけを補強する。",
+      "limitation": "最終再評価では旧版も3件すべてに合格した。今回の結果から実装品質や改善率の上昇は主張しない。新規則の対象となる判断に限定して評価しており、回答文全体の品質を保証しない。",
+      "structure_validation": "最小化した最終SKILL.mdも公式quick_validate.pyで成功。"
+    },
+    "initial_comparison_cases": 4
+  },
+  "final_state": "更新済み",
+  "not_adopted": [
+    {
+      "finding_id": "F-2/F-3",
+      "reason": "computed・型・所有先は比較の旧版でも期待した整理ができたため、試作の専用手順は削除した。"
+    },
+    {
+      "finding_id": "F-5/F-6/F-10",
+      "reason": "文言を場面で比較する方法、型を絞る分岐順、classの参照関係は既存規則と通常の判断で足りた。"
+    }
+  ]
+}

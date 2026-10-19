@@ -1,0 +1,164 @@
+{
+  "session_id": "01a12f68-20f8-7260-8a75-ae60c37a14db",
+  "skill_name": "refined-coding-hiho",
+  "source_logs": [
+    "/home/hihok/.codex/sessions/2026/10/12/rollout-2026-10-12T18-18-35-01a12f68-20f8-7260-8a75-ae60c37a14db.jsonl",
+    "/home/hihok/.codex/sessions/2026/10/12/rollout-2026-10-12T18-20-01-01a12f68-20f8-7260-8a75-ae60c37a14db_01a12f69-6fcc-7f83-9114-de13ac0bce61.jsonl",
+    "/home/hihok/.codex/sessions/2026/10/19/rollout-2026-10-19T00-15-14-01a12f68-20f8-7260-8a75-ae60c37a14db_01a14f94-ce2d-7282-8452-ed08e5e3b945.jsonl"
+  ],
+  "cases": [
+    {
+      "id": "coding_original_related_derivations",
+      "skill_name": "refined-coding-hiho",
+      "kind": "元依頼の型整理",
+      "finding_ids": [
+        "F-2"
+      ],
+      "prompt_lines": [
+        "Vueカードの派生値を整理するコード案を示してください。store.latestInfoは {type:'loading'} | {type:'fetchError';error:unknown} | {type:'fetched';targets:Target[];selectedTarget:string;progress:{type:'idle'}|{type:'download'|'install';progress:number}} です。Targetにはid、version、sizeがあります。selectedPackageInfoは未取得ならundefined、取得済みならtargets.findで探索し、見つからなければ既存assertNonNullableで例外にします。別computedのisOutdated、案内文、操作可否がそれぞれlatestInfo.typeを確認しselectedPackageInfoのundefinedを再排除しています。取得中・失敗時は選択欄と導入ボタンを出しません。idleで案内文、download/installで数値進捗、取得済みでは常に候補選択欄を出します。getActionTypeの結果は案内文とボタンを作る二つのswitchだけで使い、クリック処理は共通です。同じ前提の繰り返しを減らしてください。ファイル操作は不要です。"
+      ],
+      "assertions": [
+        "取得済みの枝で候補を一度確定し、候補・版・表示を同じ結果から導出する",
+        "未取得のundefinedを複数computedへ渡す構造を残さない",
+        "取得済みと内側の進捗の区別を保ち、表示専用の中間分類を削減する"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "取得済みの前提を一つのcomputedで確定すべきだと思います。LatestInfoは提示された型、FetchedDisplayは案内文とボタンの組です。\n\n```ts\ntype View =\n  | Exclude<LatestInfo, { type: \"fetched\" }>\n  | (Extract<LatestInfo, { type: \"fetched\" }> & {\n      selected: Target;\n      display: FetchedDisplay;\n    });\n\nconst view = computed<View>(() => {\n  const info = store.latestInfo;\n  if (info.type !== \"fetched\") return info;\n  const selected = info.targets.find(\n    (target) => target.id === info.selectedTarget,\n  );\n  assertNonNullable(selected);\n  return {\n    ...info,\n    selected,\n    display: buildFetchedDisplay(selected, info.progress),\n  };\n});\n```\n\nbuildFetchedDisplayへ版比較と表示生成を移します。版比較を一度行い、各条件で案内文とボタンをまとめて返します。getActionTypeと二つのswitchは削除できます。クリックは共通のままです。\n\nテンプレートはview.typeがfetchedの中で候補選択欄と導入ボタンを表示します。その中でprogress.typeがidleなら案内文、それ以外なら数値進捗を表示します。未取得時にundefinedを返すselectedPackageInfoと、各派生値での再確認をなくせます。取得済みで候補が存在しない場合は、既存のassertNonNullableで例外にする契約を保ちます。"
+        },
+        "assessment": "両版とも取得済みの枝で候補を一度確定し、前提確認と版比較の重複を除いて表示を生成した。",
+        "after": {
+          "passed": true,
+          "response": "取得済みの枝で候補を確定し、案内文とボタンまで一緒に生成する案がよいと思います。\n\n```ts\ntype Info = typeof store.latestInfo;\ntype Fetched = Extract<Info, { type: \"fetched\" }>;\ntype View = Exclude<Info, Fetched> | {\n  type: \"fetched\"; targets: Target[]; selected: Target;\n  progress: Fetched[\"progress\"];\n  text: string; button: ButtonData;\n};\nconst view = computed<View>(() => {\n  const info = store.latestInfo;\n  if (info.type !== \"fetched\") return info;\n  const selected = info.targets.find(t => t.id === info.selectedTarget);\n  assertNonNullable(selected);\n  return {\n    type: \"fetched\", targets: info.targets, selected,\n    progress: info.progress, ...buildDisplay(selected),\n  };\n});\n```\n\nbuildDisplayへ既存の版比較を移して一度行い、`{ text: string; button: ButtonData }`を直接返します。ActionTypeと二つのswitch、利用先のないisOutdatedは除きます。\n\nテンプレートはfetched内で候補選択欄と導入ボタンを常時描画し、progress.typeがidleならtext、それ以外なら数値進捗を使います。未取得のundefinedを利用側へ流さず、取得判定と非null確認を繰り返しません。loadingとfetchErrorの表示は維持します。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    },
+    {
+      "id": "coding_adjacent_handled_failure",
+      "skill_name": "refined-coding-hiho",
+      "kind": "近接事例",
+      "finding_ids": [
+        "F-1",
+        "F-3"
+      ],
+      "prompt_lines": [
+        "取り込みカードで『この画面で取り込み成功した直後だけボタンを無効にし、別のファイルを選んだら解除』を実装する最小のコード案を示してください。カードは選択変更や再取得では再生成されず、この表示を使うのはカードだけです。storeのimportFileは、成功を確認してreturnするか、既知のUserImportErrorを既存ダイアログで処理してreturnします。その他の例外はthrowし、既存ErrorBoundaryが扱います。戻り値はvoidです。取り込み済み情報だけでは、この画面で成功したか分かりません。状態の配置と呼び出し側まで示してください。操作は不要です。"
+      ],
+      "assertions": [
+        "成功履歴をカード内に置き、storeへ表示専用フラグを追加しない",
+        "実行側からtrue/falseなどの必要な結果を返し、呼び出し側が実際に使う",
+        "処理済みの既知の失敗を成功とせず、未知の例外は伝播する"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "成功履歴はカード内のrefに置くべきだと思います。カードだけが読み、選択変更や再取得で破棄されないためです。storeのvoidは成功と処理済み失敗を区別できないので、結果を返す契約へ変更します。実処理と既存ダイアログを以下の名前で略します。\n\n```ts\ntype ImportResult = \"success\" | \"handledFailure\";\n\nasync function importFile(file: File): Promise<ImportResult> {\n  try {\n    await importCore(file);\n    return \"success\";\n  } catch (error) {\n    if (!(error instanceof UserImportError)) throw error;\n    await showImportErrorDialog(error);\n    return \"handledFailure\";\n  }\n}\n\nconst justImported = ref(false);\n\nfunction onFileChanged(): void {\n  justImported.value = false;\n}\n\nasync function handleImport(): Promise<void> {\n  const result = await store.importFile(selectedFile.value);\n  justImported.value = result === \"success\";\n}\n```\n\n既存のファイル選択ハンドラーで、別ファイルへ変更したときにonFileChangedを呼びます。ボタンのdisabledは既存の処理中条件にjustImportedを加えます。初期値はfalseで、取り込み済み情報からtrueにはせず、通常の再取得でも書き換えません。想定外の例外はそのまま既存ErrorBoundaryへ届き、ダイアログで処理した失敗後は再試行できます。"
+        },
+        "assessment": "両版とも処理済み失敗と成功を結果で区別し、履歴をカード内に置き、未知の例外を伝播した。旧版は二つの文字列リテラル、新版はbooleanを選んだが、要求する挙動は両方で満たす。booleanへの変更だけを規則追加の必要性の証拠にはしない。",
+        "after": {
+          "passed": true,
+          "response": "計画は、成否を返してカード内のrefへ成功履歴を持つことです。この配置がよいと思います。\n\n```ts\nasync function importFile(file: File): Promise<boolean> {\n  try {\n    await executeImport(file);\n    return true;\n  } catch (error) {\n    if (!(error instanceof UserImportError)) throw error;\n    await showExistingDialog(error);\n    return false;\n  }\n}\nconst justSucceeded = ref(false);\nfunction selectFile(file: File): void {\n  selectedFile.value = file;\n  justSucceeded.value = false;\n}\nasync function handleImport(): Promise<void> {\n  const file = selectedFile.value;\n  assertNonNullable(file);\n  const succeeded = await store.importFile(file);\n  if (succeeded && selectedFile.value === file) {\n    justSucceeded.value = true;\n  }\n}\n```\n\nexecuteImportとshowExistingDialogは既存の実処理とダイアログを表します。未知の例外はそのまま既存ErrorBoundaryへ伝播し、falseへ変換しません。\n\ndisabledは既存の処理中条件にjustSucceededを加えます。初期値はfalse。再取得で保持し、別ファイル選択で解除します。処理中の選択変更にも対象を照合します。カードだけが読み再生成されないため、履歴は画面内で寿命を満たします。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    },
+    {
+      "id": "coding_negative_exception_and_independence",
+      "skill_name": "refined-coding-hiho",
+      "kind": "適用条件の反例",
+      "finding_ids": [
+        "F-2",
+        "F-3"
+      ],
+      "prompt_lines": [
+        "アプリのオンライン状態と選択中の文書のdirtyをそれぞれ別computedで読む実装を整理してください。両者は独立に更新され、オンライン表示と未保存表示で別々に使い、同じ状態確認の重複はありません。saveは未処理のI/Oエラーを呼び出し元の既存リトライ機構へthrowし、呼び出し元は保存失敗の原因を使います。画面は頻繁に破棄され、dirtyは再表示後も必要です。今回のコード整理に何を含めるか判断してください。操作は不要です。"
+      ],
+      "assertions": [
+        "独立したcomputedと共有すべきdirtyを無理に統合・ローカル化しない",
+        "未処理のI/Oエラーをfalseへ変換しない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "提示された範囲は現状を維持すべきだと思います。オンライン状態とdirtyは独立して更新され、利用する表示も別です。同じ前提の重複もないため、computedを統合する目的がありません。\n\ndirtyは画面を破棄しても必要なので、共有状態のまま保持します。画面内のrefへの移動は寿命の要件を壊します。saveのI/Oエラーも、原因を必要とする既存のリトライ機構までthrowする契約を保ちます。成功・失敗の結果型への変換や、別のcatchによる処理は今回の整理へ含めません。変更すべき具体的な重複が示されていないため、この情報だけでコード変更は行いません。"
+        },
+        "assessment": "両版とも独立したcomputed、画面を越えるdirty、既存の例外伝播を維持した。",
+        "after": {
+          "passed": true,
+          "response": "提示された範囲には、統合や移動が必要な箇所はないと思います。オンライン状態とdirtyは独立して更新され、別の表示で使われ、前提確認の重複もありません。二つのcomputedを維持します。\n\ndirtyは画面再表示後も必要なので、画面より長く保持できる既存の所有先を保ちます。画面内へ移すと必要な状態を失います。\n\nsaveのI/Oエラーは既存のリトライ機構が原因を使うため、そのままthrowする契約を維持します。booleanへの変換や新しいcatchは加えません。今回の整理を理由に状態の寿命やエラー伝播を変更する必要はないと思います。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    },
+    {
+      "id": "coding_regression_required_await",
+      "skill_name": "refined-coding-hiho",
+      "kind": "既存判断の回帰",
+      "finding_ids": [],
+      "prompt_lines": [
+        "async saveAllはawait writeData(); await flush();です。呼び出し側はawait saveAll(); unlockUI();で、永続化完了後だけUIを有効にし、flushの拒否も呼び出し側で処理する契約です。末尾awaitをvoidへ変えて差分を減らす案を判断してください。操作は不要です。"
+      ],
+      "assertions": [
+        "呼び出し元の完了と拒否の契約を保ち、末尾awaitを削除しない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "末尾のawaitは維持すべきだと思います。saveAllの完了はflushの完了を含む契約です。void flush()にすると、flushが終わる前にunlockUI()が実行され、flushの拒否もawait saveAll()の呼び出し側へ伝わらなくなります。差分の少なさでこの完了条件は削れません。await writeData(); await flush();をそのまま保つ判断です。"
+        },
+        "assessment": "両版とも永続化の完了と拒否伝播のための末尾awaitを維持した。",
+        "after": {
+          "passed": true,
+          "response": "末尾のawaitをvoidへ変えない方がよいと思います。`void flush()`ではsaveAllが永続化完了前に正常終了し、unlockUIが先に実行されます。flushの拒否もsaveAllを通じて呼び出し側へ届かなくなります。\n\n```ts\nasync function saveAll(): Promise<void> {\n  await writeData();\n  await flush();\n}\n```\n\nこのままなら、書き込み後にflushを行う順序、完了後だけのUI有効化、拒否の伝播を保てます。差分の小ささを理由に完了契約を変えるべきではありません。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    }
+  ],
+  "change_decisions": [
+    {
+      "finding_id": "F-2",
+      "decision": "no-change",
+      "section": "非同期呼び出しと状態の導出",
+      "change": "取得済みの値を一度確定して表示を生成する",
+      "reason": "同じ入力による比較で旧版も問題を防ぎ、試作規則による判断の改善を確認できなかった。通常の判断や既存指示を重複させる追記は採用しない。"
+    },
+    {
+      "finding_id": "F-1/F-3",
+      "decision": "no-change",
+      "section": "非同期呼び出しと状態の導出",
+      "change": "画面内の成功履歴と実行側の結果を分け、既処理の失敗と未処理例外を区別する",
+      "reason": "同じ入力による比較で旧版も問題を防ぎ、試作規則による判断の改善を確認できなかった。通常の判断や既存指示を重複させる追記は採用しない。"
+    }
+  ],
+  "generalization_judgment": "そうすべきだと思う。採用された具体的な修正から条件付きの手順へ一般化した判断であり、普遍的な必須規約をユーザーが宣言したという意味ではない。",
+  "findings_source": "../../refined-codedesign-hiho/evals/session-01a12f68-20f8-7260-8a75-ae60c37a14db.json",
+  "trial_change_decisions": [
+    {
+      "finding_id": "F-2",
+      "decision": "add",
+      "section": "非同期呼び出しと状態の導出",
+      "change": "取得済みの値を一度確定して表示を生成する"
+    },
+    {
+      "finding_id": "F-1/F-3",
+      "decision": "add",
+      "section": "非同期呼び出しと状態の導出",
+      "change": "画面内の成功履歴と実行側の結果を分け、既処理の失敗と未処理例外を区別する"
+    }
+  ],
+  "validation": {
+    "method": "公式skill-creatorの独立評価。旧版と試作版を別の新規コンテキストへ渡し、同じ19件の入力へ回答させた。評価対象には期待する答え・根拠となる過去ログ・合否条件を渡していない。親が事前のassertionsに照らして成果を評価した。",
+    "before_agent": "/root/skill_baseline_eval",
+    "trial_after_agent": "/root/skill_updated_eval",
+    "before_passed": 4,
+    "trial_after_passed": 4,
+    "boundary": "模擬の設計・実装案・委任文・レビュー出力による評価。実際のプロダクト実装、画面操作、テスト、Git操作、外部投稿は行っていない。各条件を1回ずつ試した結果であり、改善率を統計的に保証するものではない。",
+    "structure_validation": "公式quick_validate.pyで5スキルの試作版がすべて成功。対象プロジェクトの仮想環境にはPyYAMLがなく、同じ検証スクリプトをPyYAMLのあるシステムPythonからuvで実行して復旧した。",
+    "invocation": "既存のdescriptionと呼び出し方針は変更しない。",
+    "initial_comparison_cases": 4
+  },
+  "final_state": "変更不要"
+}

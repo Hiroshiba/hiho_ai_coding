@@ -1836,6 +1836,124 @@
         "必要な bytes の let を不要な可変性として指摘しない",
         "設定取得が整理済みのコードへ同じ指摘を繰り返さない"
       ]
+    },
+    {
+      "id": "ui_default_discover_unchanged_flow_screen",
+      "prompt_lines": [
+        "提供されたリポジトリの PR を $refined-review-hiho でレビューしてください。変更内容と最新コードを確認し、指摘を日本語で答えてください。コード変更、コマンド実行による動作確認、外部アクセス、GitHub 投稿は行わないでください。提示していない型や UI 基盤の実装は正常です。",
+        "",
+        "PR の目的は、現在主流の ARM 搭載 Mac でサイトから既定値のままダウンロードしたとき、x64 版を選び直す手間をなくすことです。変更ファイルは src/dialogs/ApplicationDownload.ts だけです。mac の選択肢を [\"x64\", \"arm64\"] から [\"arm64\", \"x64\"] へ並べ替えています。その他の処理は変わりません。既存のスナップショット更新は作者へ依頼済みです。選択肢の表示順、初期値、URL 対応を確認した上でレビューを完了してください。"
+      ],
+      "fixture_files": {
+        "src/dialogs/ApplicationDownload.ts": "export type Cpu = \"arm64\" | \"x64\";\nconst choices: Record<\"mac\", Cpu[]> = { mac: [\"arm64\", \"x64\"] };\nconst urls: Record<Cpu, string> = { arm64: \"/app-mac-arm64.dmg\", x64: \"/app-mac-x64.dmg\" };\nexport function openApplicationDownload(): void {\n  openSelector({ choices: choices.mac, initial: choices.mac[0], urls });\n}\n",
+        "src/dialogs/ExtensionDownload.ts": "import type { Cpu } from \"./ApplicationDownload\";\nconst choices: Record<\"mac\", Cpu[]> = { mac: [\"x64\", \"arm64\"] };\nconst urls: Record<Cpu, string> = { arm64: \"/extension-mac-arm64.pkg\", x64: \"/extension-mac-x64.pkg\" };\nexport function openExtensionDownload(): void {\n  openSelector({ choices: choices.mac, initial: choices.mac[0], urls });\n}\n",
+        "src/dialogs/ExtensionGuide.ts": "import { openApplicationDownload } from \"./ApplicationDownload\";\nimport { openExtensionDownload } from \"./ExtensionDownload\";\nexport const extensionSteps = [\n  { label: \"1. アプリをダウンロード\", open: openApplicationDownload },\n  { label: \"2. アプリを起動\" },\n  { label: \"3. 追加音声をダウンロードしてアプリへ追加\", open: openExtensionDownload },\n];\n",
+        "src/pages/extension.ts": "import { extensionSteps } from \"../dialogs/ExtensionGuide\";\nrenderGuide(\"追加音声の導入\", extensionSteps);\n"
+      },
+      "assertions": [
+        "変更のない ExtensionDownload と、その呼び出し元の ExtensionGuide を実際に読む",
+        "同じ導入手順でアプリは arm64、追加音声は x64 が初期選択になる不一致を指摘する",
+        "今回アプリ側だけを変更したこと、既定値で進む条件、取得する組み合わせと選び直しの関係を説明する",
+        "追加音声側も同じ目的の選択順と初期値へ揃える修正方向を示す",
+        "互換性不良や実行失敗を資料なしで断定せず、修正必須へ上げない",
+        "依頼済みのスナップショット更新を新規の指摘にしない"
+      ]
+    },
+    {
+      "id": "ui_default_aligned_rereview",
+      "prompt_lines": [
+        "提供されたリポジトリの PR を $refined-review-hiho で再レビューしてください。コード変更、動作確認、外部アクセス、GitHub 投稿は行わないでください。提示していない基盤は正常です。",
+        "",
+        "PR は Mac のダウンロード選択を ARM 優先にします。前回、追加音声の導入手順の不一致を指摘しました。最新 HEAD ではアプリと追加音声の選択順を ARM 優先へ揃え、スナップショット更新も済んでいます。同じ HEAD の既存 CI は成功しています。最新コードを読んでレビューしてください。"
+      ],
+      "fixture_files": {
+        "src/dialogs/ApplicationDownload.ts": "export type Cpu = \"arm64\" | \"x64\";\nconst choices: Record<\"mac\", Cpu[]> = { mac: [\"arm64\", \"x64\"] };\nconst urls: Record<Cpu, string> = { arm64: \"/app-mac-arm64.dmg\", x64: \"/app-mac-x64.dmg\" };\nexport function openApplicationDownload(): void {\n  openSelector({ choices: choices.mac, initial: choices.mac[0], urls });\n}\n",
+        "src/dialogs/ExtensionDownload.ts": "import type { Cpu } from \"./ApplicationDownload\";\nconst choices: Record<\"mac\", Cpu[]> = { mac: [\"arm64\", \"x64\"] };\nconst urls: Record<Cpu, string> = { arm64: \"/extension-mac-arm64.pkg\", x64: \"/extension-mac-x64.pkg\" };\nexport function openExtensionDownload(): void {\n  openSelector({ choices: choices.mac, initial: choices.mac[0], urls });\n}\n",
+        "src/dialogs/ExtensionGuide.ts": "import { openApplicationDownload } from \"./ApplicationDownload\";\nimport { openExtensionDownload } from \"./ExtensionDownload\";\nexport const extensionSteps = [\n  { label: \"1. アプリをダウンロード\", open: openApplicationDownload },\n  { label: \"2. アプリを起動\" },\n  { label: \"3. 追加音声をダウンロードしてアプリへ追加\", open: openExtensionDownload },\n];\n"
+      },
+      "assertions": [
+        "アプリと追加音声の最新コードを読み、順序、初期選択、URL の整合を確認する",
+        "前回指摘が解消したことを認め、新規の指摘なしとする",
+        "既存 CI の成功を、自分で実行した結果と混同しない"
+      ]
+    },
+    {
+      "id": "ui_default_display_order_with_explicit_initial",
+      "prompt_lines": [
+        "次の PR を $refined-review-hiho でレビューしてください。提示資料とスキルの参照ファイルだけを使い、コード変更や外部アクセスは行わないでください。",
+        "",
+        "PR の目的は、ARM 搭載 Mac で追加音声を導入するとき既定値のまま進めるようにすることです。同じ導入手順でアプリと追加音声を順番に取得します。アプリの選択肢と初期値は [arm64, x64] と arm64 へ変更されました。追加音声は未変更で、表示順は [x64, arm64] ですが、初期値は明示的な arm64 です。両方とも CPU ごとの URL 対応は正しく、既定値では arm64 版を取得します。表示順を全画面で統一する規約や要求はありません。"
+      ],
+      "assertions": [
+        "先頭の選択肢と初期選択を区別する",
+        "表示順が違うことだけで、取得物や既定値が食い違うと指摘しない",
+        "明示されていない表示順の統一要件を作らず、指摘なしとする"
+      ]
+    },
+    {
+      "id": "ui_default_independent_distribution_paths",
+      "prompt_lines": [
+        "次の PR を $refined-review-hiho でレビューしてください。提示資料とスキルの参照ファイルだけを使い、コード変更や外部アクセスは行わないでください。",
+        "",
+        "PR は一般利用者向けアプリの Mac 選択順と初期値を ARM 優先へ変更します。別に旧機器保守担当者専用の配布ページがあり、こちらは x64 優先のままです。二つのページは独立した用途で、同じ導入手順から開かれたり、両方の配布物を組み合わせたりしません。保守ページの対象機器は x64 であり、今回の PR の対象外と明示されています。選択値から配布物への対応はすべて正しいものとします。"
+      ],
+      "assertions": [
+        "用途と利用経路が独立した保守ページへ同じ初期値を求めない",
+        "既存の別用途の選択順を新しい問題にせず、指摘なしとする"
+      ]
+    },
+    {
+      "id": "ui_default_distinct_supported_architectures",
+      "prompt_lines": [
+        "次の PR を $refined-review-hiho でレビューしてください。提示資料とスキルの参照ファイルだけを使い、コード変更や外部アクセスは行わないでください。",
+        "",
+        "Mac 向けアプリを ARM 優先へ変更します。同じ導入手順で取得する補助ツールは x64 版しか存在せず、ARM 搭載 Mac では OS の互換機構で別プロセスとして実行することが公式サポートされています。アプリと補助ツールは公開プロトコルで通信し、CPU 一致の制約はありません。補助ツールの x64 固定は明示された仕様です。アプリの選択順、初期値、取得 URL は ARM 優先で一致しています。"
+      ],
+      "assertions": [
+        "同じ導入手順でもサポートする CPU と実行契約が異なることを確認する",
+        "存在しない ARM 版の追加や CPU の統一を求めず、指摘なしとする",
+        "CPU 不一致だけで互換性不良を断定しない"
+      ]
+    },
+    {
+      "id": "ui_default_preexisting_difference_not_worsened",
+      "prompt_lines": [
+        "次の PR を $refined-review-hiho でレビューしてください。提示資料とスキルの参照ファイルだけを使い、コード変更や外部アクセスは行わないでください。",
+        "",
+        "PR はアプリのダウンロード画面の見出しの誤字だけを修正します。同じ導入手順のアプリ側は ARM 優先、追加音声側は x64 優先ですが、この違いは変更前から存在します。PR は選択順、初期値、配布物、呼び出し元、利用案内を変えず、不一致の影響を広げません。見出しの修正自体に問題はありません。"
+      ],
+      "assertions": [
+        "同じ利用手順の差であっても、今回の変更で発生も悪化もしない問題を報告しない",
+        "関連画面を調査する規則を、既存の差をすべて修正する規則へ広げない",
+        "指摘なしとする"
+      ]
+    },
+    {
+      "id": "ui_default_confirmed_runtime_incompatibility",
+      "prompt_lines": [
+        "次の PR を $refined-review-hiho でレビューしてください。提示資料とスキルの参照ファイルだけを使い、コード変更や外部アクセスは行わないでください。",
+        "",
+        "PR はネイティブプラグインを使う Mac 向けアプリの初期値を x64 から arm64 へ変更します。同じ初回導入手順のプラグイン取得画面は x64 のままです。両画面で選択を変えずに進めると arm64 ホストと x64 プラグインを取得します。ローダーの公開契約は CPU 一致を必須としており、最新コードには if (host.cpu !== plugin.cpu) throw new UnsupportedCpuError() という検査があります。変更前は両方 x64 で起動していました。各画面の表示順と初期値と URL は、それぞれの画面内では一致しています。"
+      ],
+      "assertions": [
+        "今回の片側だけの変更で、既定経路が CPU 不一致の例外へ到達することを指摘する",
+        "単なる表示上の一貫性とは区別し、起動不能と公開契約違反に応じて修正必須とする",
+        "プラグイン側の選択も揃えるなど、同じ CPU の組み合わせを取得する修正方向を示す"
+      ]
+    },
+    {
+      "id": "routing_explicit_review_not_session_refinement",
+      "prompt_lines": [
+        "次の依頼について、適用するスキルとその理由だけを日本語で答えてください。実際のレビューやスキル更新は行わないでください。",
+        "",
+        "利用可能なスキルは、明示指示で PR の通常レビューと再レビューに使う refined-review-hiho と、明示指示で過去セッションから既存レビュースキルを改善する refine-code-review-skill-from-session です。",
+        "依頼: $review-hiho 42 $refined-review-hiho。最新版の変更を再レビューしてください。"
+      ],
+      "assertions": [
+        "通常の PR 再レビューとして refined-review-hiho を適用対象とする",
+        "refine-code-review-skill-from-session を選択せず、過去セッションの分析やスキル更新を始めない",
+        "明示起動専用の既存方針を自動起動へ変えない"
+      ]
     }
   ]
 }

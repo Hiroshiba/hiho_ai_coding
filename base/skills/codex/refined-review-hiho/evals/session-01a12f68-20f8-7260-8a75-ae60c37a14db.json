@@ -1,0 +1,166 @@
+{
+  "session_id": "01a12f68-20f8-7260-8a75-ae60c37a14db",
+  "skill_name": "refined-review-hiho",
+  "source_logs": [
+    "/home/hihok/.codex/sessions/2026/10/12/rollout-2026-10-12T18-18-35-01a12f68-20f8-7260-8a75-ae60c37a14db.jsonl",
+    "/home/hihok/.codex/sessions/2026/10/12/rollout-2026-10-12T18-20-01-01a12f68-20f8-7260-8a75-ae60c37a14db_01a12f69-6fcc-7f83-9114-de13ac0bce61.jsonl",
+    "/home/hihok/.codex/sessions/2026/10/19/rollout-2026-10-19T00-15-14-01a12f68-20f8-7260-8a75-ae60c37a14db_01a14f94-ce2d-7282-8452-ed08e5e3b945.jsonl"
+  ],
+  "cases": [
+    {
+      "id": "review_original_derived_state",
+      "skill_name": "refined-review-hiho",
+      "kind": "元指摘の見落とし",
+      "finding_ids": [
+        "F-2"
+      ],
+      "prompt_lines": [
+        "きめ細やかなレビューをしてください。提示資料だけを使い、変更・投稿はしないでください。PRはUI表示を整理します。今回追加したselectedInfoは取得中と失敗時にundefined、取得済み時に候補を探索して返します。追加したneedsUpdate、latestText、buttonDataの三つのcomputedはそれぞれ取得状態とselectedInfoのundefinedをチェックしてから同じ版比較を行います。表示型はloading/fetchError/idle/download/installの平坦unionで、idle/download/installに同じ候補データがあります。selectorのv-ifは後三者のORです。loading/fetchErrorでは主ボタンを出しません。取得済み時の操作分類は、同じ関数内で文言とボタン表示へ変換するだけで、クリック処理は共通です。表示上の誤動作は確認されていません。実装構造について報告してください。"
+      ],
+      "assertions": [
+        "同じ前提確認を繰り返す派生値と候補データの型を利用先まで照合する任意の指摘をする",
+        "共通の取得済み状態と内側の処理状態、表示専用中間分類の削減方向を示す",
+        "誤動作未確認の整理を修正必須へ上げない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "任意の整理として、次の二点を挙げます。提示資料では誤動作が確認されていないため、修正必須とは扱わない方がよいと思います。\n\n- selectedInfoとneedsUpdate・latestText・buttonDataの構成。取得状態、選択候補の存在、版比較を三つのcomputedが別々に持っています。表示条件や比較を直すときに、同じ修正を各所へ反映する必要が残ります。取得済みの枝で候補を一度解決し、既存のassertNonNullableで存在を確定してから、版比較・案内文・ボタンをまとめて導出する形へ整理できます。未取得時のundefinedを複数箇所で再排除する構造も減らせます。\n- idle/download/installの表示型とselectorのv-if。同じ候補データを三枝へ持たせているため、共通の候補欄も三条件ORになります。loading/fetchError/fetchedを上位にし、fetchedの中にidleまたはdownload/installの進捗を置けば、候補欄とボタンはfetched、案内文と数値進捗は内部の状態で切り替えられます。型だけの共通化ではなく、生成とテンプレートを一緒に整理する方がよいと思います。\n\n取得済み時の操作分類が同じ関数内で表示へ変換されるだけなら、各条件から案内文とボタンの組を直接返す任意の簡略化も可能です。共通クリック処理を分割する理由にはなりません。\n\nファイル名・行番号は提供されていないため、対象の識別子で報告しました。提示された今回追加の構造についての報告であり、実コードの調査や変更・投稿は行っていません。"
+        },
+        "assessment": "両版とも関連するcomputed、共通の取得済み状態、中間分類を任意の整理として指摘した。新しいレビュー規則での改善は確認できない。",
+        "after": {
+          "passed": true,
+          "response": "任意の整理として、次の二点を報告します。提示資料には到達する誤表示や操作違反がなく、修正必須へは上げません。位置はファイル・行番号が未提示のため識別子で示します。\n\n1. selectedInfo、needsUpdate、latestText、buttonDataと表示型の生成箇所。同じ取得前提と未定義値の排除、版比較を複数箇所に増やしており、条件変更時に案内とボタンを別々に更新する必要があります。取得済みの枝で候補を一度確定し、必要データを必須にしたfetched状態から表示を生成する方がよいと思います。idle/download/installは内側の処理状態へ移し、候補選択欄と主ボタンはfetched内で描画します。idleでは案内文、download/installでは数値進捗を描画すれば、候補データの重複とselectorの三条件のORも減らせます。loading/fetchErrorで主ボタンを隠す条件は保ちます。\n\n2. 取得済み時の操作分類を表示値へ変換する箇所。分類の利用先は同じ関数内の文言・ボタン生成だけで、実行処理も共通です。中間分類を経由せず、各条件から最終的な文言とボタンを一緒に返す案がよいと思います。条件を別のcomputedへ移すだけでは、判断箇所の重複は残ります。\n\n独立して更新される状態の統合や、表示のための分類以外の削除は求めません。今回追加された構造と、その利用先の整理としての指摘です。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    },
+    {
+      "id": "review_adjacent_success_and_owner",
+      "skill_name": "refined-review-hiho",
+      "kind": "近接事例",
+      "finding_ids": [
+        "F-1",
+        "F-3"
+      ],
+      "prompt_lines": [
+        "次のUI変更をレビューしてください。提示資料だけを使い、変更・投稿はしないでください。仕様は『このカードで成功した直後だけ再実行を無効化。以前から導入済みなら再実行可』です。PRはstoreへjustCompletedを追加し、初回取得でinstalledならtrueにします。カードのhandleInstallはawait store.install(); store.justCompleted=true;です。store.installは成功後returnするか、KnownErrorを既存ダイアログで処理してreturnし、その他はthrowします。カードは情報再取得と選択変更では再生成されず、justCompletedを使うのはカードだけです。変更前にはこのフラグはありません。問題と任意の整理を区別して報告してください。"
+      ],
+      "assertions": [
+        "初期導入済みからの誤無効化と、処理済み失敗の成功扱いを具体的な仕様違反として報告する",
+        "結果を実行側から返しカード内で表示履歴を持つ案を示す",
+        "ローカルへの移動だけは任意と区別し、未処理例外の握りつぶしを提案しない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "修正必須だと思う問題は、次の二点です。提示資料に行番号がないため、対象の処理名で示します。\n\n- 初回取得でinstalledならjustCompleted=trueにする処理。以前から導入済みのカードを開くだけで再実行が無効になり、「このカードで成功した直後だけ」という仕様に違反します。初期値はfalseとし、取得した導入情報から成功履歴を作らないでください。\n- handleInstallのawait store.install()直後の代入。KnownErrorをダイアログで処理した場合もstore.installは正常終了するため、失敗後にもtrueとなり、再試行を無効にします。storeが成功と処理済み失敗を区別する型付き結果を返し、呼び出し側は成功した場合だけtrueにする方向で修正できます。その他の例外は既存のthrowとエラー境界への伝播を保ってください。\n\n成功履歴の失効も合わせて定めるべきだと思います。カードは選択変更で再生成されないため、別の対象へ切り替えた後まで同じフラグを残すと、その対象で成功していなくても実行を無効にします。別候補への変更で解除し、通常の情報再取得では勝手に成功扱いにしない構成にします。\n\n任意の整理は、justCompletedの所有先です。利用先がカードだけで、通常の再取得や選択変更でもカードが生存するため、カード内のrefで必要な履歴を保持できます。storeからカードへ移すこと自体は上の誤判定を直す必須条件ではありませんが、共有状態と更新経路を減らす点で適切だと思います。初期取得、成功、処理済み失敗、選択変更を分けて確認する修正が必要です。"
+        },
+        "assessment": "両版とも初期導入済みの誤無効化と処理済み失敗の成功扱いを仕様違反として報告し、所有先の整理だけは任意と分けた。",
+        "after": {
+          "passed": true,
+          "response": "修正必須だと思う問題が二点あります。位置は提示された処理名で示します。\n\n1. storeの初回取得時のjustCompleted設定。以前からinstalledの対象でもtrueになり、利用者がこのカードで成功していないのに再実行を禁止します。「以前から導入済みなら再実行可」という仕様に違反します。導入済みの現在状態とカード内の成功履歴を分け、履歴の初期値はfalseにしてください。\n\n2. handleInstallのawait直後の代入。store.installはKnownErrorをダイアログで処理した場合も正常終了します。その経路でjustCompletedがtrueになり、失敗した操作を成功表示して再試行を妨げます。storeは成功をtrue、処理済み失敗をfalseで返し、カードはtrueのときだけ履歴を更新する方向がよいと思います。その他の例外は元のままthrowし、booleanへ変換しません。\n\n任意の整理として、履歴をカード内のrefへ移す案があります。読み手はカードだけで、再取得や選択変更でもカードは再生成されないため、画面内で必要な寿命を満たせます。移す場合はstoreの項目・初期値・更新処理も除きます。共有状態にあること自体を上の誤動作と同じ重大度にはしません。\n\n成功対象を変える選択変更では履歴を解除し、情報の再取得だけでは保持する扱いも合わせて確認してください。初期導入済み、成功、処理済み失敗、未処理例外、それぞれで表示と操作可否を照合します。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    },
+    {
+      "id": "review_negative_independent_shared",
+      "skill_name": "refined-review-hiho",
+      "kind": "適用条件の反例",
+      "finding_ids": [
+        "F-2",
+        "F-3"
+      ],
+      "prompt_lines": [
+        "きめ細やかにレビューしてください。提示資料のみを使い、変更・投稿は禁止です。今回変更した二つのcomputedはオンライン状態と未保存状態を別々に読みます。二つは独立更新で、別々の表示へ使います。未保存状態と完了状態は複数画面で共有し、画面再生成後も保つ明示要件があります。成功と処理済みの失敗は既存の型付き結果で区別され、初期表示を操作成功扱いにしません。同じ前提確認や条件列挙の重複はありません。今回触れていない古い画面には似た長い条件があります。指摘がなければそう答えてください。"
+      ],
+      "assertions": [
+        "computed数やstoreであることだけで統合・ローカル化を要求せず、差分外の既存複雑さを報告しない"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "指摘はありません。二つのcomputedは独立した状態を別々の表示で使っており、重複確認もありません。共有状態の配置と寿命、成功と処理済み失敗の区別、初期表示の扱いも提示された要件を満たします。今回触れていない古い画面の条件は、今回の変更で悪化した問題としては扱いません。"
+        },
+        "assessment": "両版とも指摘なしとし、独立したcomputed、必要な共有状態、差分外の既存コードを過剰に変更させなかった。",
+        "after": {
+          "passed": true,
+          "response": "指摘はありません。二つのcomputedは独立した更新と利用先を持ち、重複する前提確認もありません。共有状態には複数画面での参照と画面再生成後の保持要件があります。成否の区別と初期表示の扱いも提示仕様を満たしています。\n\n今回変更していない古い画面の長い条件を、今回のPRの問題として持ち込みません。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    },
+    {
+      "id": "review_regression_assertion_contract",
+      "skill_name": "refined-review-hiho",
+      "kind": "採用済みレビューの回帰",
+      "finding_ids": [
+        "F-8"
+      ],
+      "prompt_lines": [
+        "TypeScript PRをレビューしてください。提示資料だけを使い、コード変更・実行・投稿はしないでください。既存定義はfunction assertNonNullable<T>(value:T): asserts value is NonNullable<T> { if(value==null) throw new Error('値がありません'); }です。PRはX.vue:12にconst selected=assertNonNullable(info.value);、13にreturn selected.version;を追加し、Y.vue:20にもif(assertNonNullable(needsUpdate.value)){return update;}を追加しました。info.valueは取得済み時にオブジェクト、needsUpdate.valueはtrueまたはfalseです。両箇所は通常の表示で実行されます。指摘と修正方向を示してください。"
+      ],
+      "assertions": [
+        "assertion関数の戻り値を使う両箇所を指摘し、元の変数を独立した文で絞り込む方向を示す",
+        "実行不能の推測や型アサーションへの置換をせず、実際のundefined参照と条件が成立しない影響を説明する"
+      ],
+      "evaluation": {
+        "before": {
+          "passed": true,
+          "response": "- 修正必須、X.vue:12–13。assertNonNullableは値を返す関数ではなく、渡した変数を絞り込むアサーション関数です。戻り値をselectedへ代入するとselectedはvoidとなり、version参照が成立しません。通常の表示経路で実行される追加コードなので、値を先に変数へ取り、その変数を検査してください。\n\n```ts\nconst selected = info.value;\nassertNonNullable(selected);\nreturn selected.version;\n```\n\n- 修正必須、Y.vue:20。assertNonNullable(needsUpdate.value)の戻り値はvoidで、更新要否の条件には使えません。trueとfalseはいずれも非nullなので、検査も更新要否を判定しません。実行された場合も戻り値はundefinedであり、更新が必要でもupdateの枝へ入りません。元のbooleanを直接使ってください。\n\n```ts\nif (needsUpdate.value) {\n  return update;\n}\n```\n\n既存関数の返り値契約を変えるより、二つの呼び出し側を修正すべきだと思います。Xは検査対象の変数を後で読む形にし、Yはnullableでないbooleanなのでアサーション自体を外します。型検査や実行は行っていません。"
+        },
+        "assessment": "両版ともassertion関数の戻り値を使う二箇所を発見し、元の変数を検査する方法とbooleanの直接判定を示した。専用規則を加えず既存レビューの回帰を確認できた。",
+        "after": {
+          "passed": true,
+          "response": "二箇所とも修正必須だと思います。\n\n1. X.vue:12–13。assertNonNullableはassertsで引数の型を絞り込む関数で、値を返しません。代入先selectedは型上void、実行時にはundefinedなので、通常表示でselected.versionを読む処理が成立しません。元の値を変数へ取り、その変数をassertしてください。\n\n```ts\nconst selected = info.value;\nassertNonNullable(selected);\nreturn selected.version;\n```\n\n2. Y.vue:20。assertNonNullableの返り値は真偽判定に使えません。needsUpdate.valueがtrueでも返り値はundefinedとなり、updateの枝へ進みません。falseもnullではないため、assert自体は正常終了します。入力はbooleanと明示されているので、そのまま条件に使ってください。\n\n```ts\nif (needsUpdate.value) {\n  return update;\n}\n```\n\n根拠は提示されたassertNonNullableの定義とX.vue:12–13、Y.vue:20です。型アサーションで辻褄を合わせたり、既存のassert関数の契約を変えたりせず、今回追加した二つの呼び出しを修正する方向がよいと思います。実行やコード変更は行っていません。"
+        },
+        "phase": "試作規則の新旧比較。本文へ残さない候補も含む。"
+      }
+    }
+  ],
+  "change_decisions": [
+    {
+      "finding_id": "F-2",
+      "decision": "no-change",
+      "section": "派生状態の利用側の確認",
+      "change": "同じ前提確認の重複と表示専用中間分類を任意の整理として扱う",
+      "reason": "同じ入力による比較で旧版も問題を防ぎ、試作規則による判断の改善を確認できなかった。通常の判断や既存指示を重複させる追記は採用しない。"
+    },
+    {
+      "finding_id": "F-1/F-3",
+      "decision": "no-change",
+      "section": "操作直後の履歴と所有先",
+      "change": "誤操作制限と処理済み失敗の成功扱いを確認し、ローカルへの移動だけなら任意とする",
+      "reason": "同じ入力による比較で旧版も問題を防ぎ、試作規則による判断の改善を確認できなかった。通常の判断や既存指示を重複させる追記は採用しない。"
+    }
+  ],
+  "generalization_judgment": "そうすべきだと思う。採用された具体的な修正から条件付きの手順へ一般化した判断であり、普遍的な必須規約をユーザーが宣言したという意味ではない。",
+  "findings_source": "../../refined-codedesign-hiho/evals/session-01a12f68-20f8-7260-8a75-ae60c37a14db.json",
+  "trial_change_decisions": [
+    {
+      "finding_id": "F-2",
+      "decision": "add",
+      "section": "派生状態の利用側の確認",
+      "change": "同じ前提確認の重複と表示専用中間分類を任意の整理として扱う"
+    },
+    {
+      "finding_id": "F-1/F-3",
+      "decision": "add",
+      "section": "操作直後の履歴と所有先",
+      "change": "誤操作制限と処理済み失敗の成功扱いを確認し、ローカルへの移動だけなら任意とする"
+    }
+  ],
+  "validation": {
+    "method": "公式skill-creatorの独立評価。旧版と試作版を別の新規コンテキストへ渡し、同じ19件の入力へ回答させた。評価対象には期待する答え・根拠となる過去ログ・合否条件を渡していない。親が事前のassertionsに照らして成果を評価した。",
+    "before_agent": "/root/skill_baseline_eval",
+    "trial_after_agent": "/root/skill_updated_eval",
+    "before_passed": 4,
+    "trial_after_passed": 4,
+    "boundary": "模擬の設計・実装案・委任文・レビュー出力による評価。実際のプロダクト実装、画面操作、テスト、Git操作、外部投稿は行っていない。各条件を1回ずつ試した結果であり、改善率を統計的に保証するものではない。",
+    "structure_validation": "公式quick_validate.pyで5スキルの試作版がすべて成功。対象プロジェクトの仮想環境にはPyYAMLがなく、同じ検証スクリプトをPyYAMLのあるシステムPythonからuvで実行して復旧した。",
+    "invocation": "既存のdescriptionと呼び出し方針は変更しない。",
+    "initial_comparison_cases": 4
+  },
+  "final_state": "変更不要"
+}
