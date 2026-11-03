@@ -1954,6 +1954,263 @@
         "refine-code-review-skill-from-session を選択せず、過去セッションの分析やスキル更新を始めない",
         "明示起動専用の既存方針を自動起動へ変えない"
       ]
+    },
+    {
+      "id": "build_only_file_placement_and_missing_intent",
+      "prompt_lines": [
+        "次の PR を $refined-review-hiho でレビューしてください。提示した PR 本文と最新コード抜粋、指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR 本文:",
+        "署名付き Linux arm64 のパッケージで native bridge の初期化が停止する問題を修正します。BundleLib 4.2 に policy_file を渡し、ランタイムの例外設定を有効にします。Issue #240 に原因調査があります。最小プログラムでは停止が解消しました。",
+        "",
+        "変更ファイルは bundle.spec と bridge_policy.json です。bundle.spec には policy_file の選択と build への引数だけを追加しています。bridge_policy.json は新設です。",
+        "",
+        "現在の配置:",
+        "```text",
+        "bundle.spec",
+        "bridge_policy.json",
+        "resources/",
+        "  logo.png",
+        "  dictionary.bin",
+        "tools/",
+        "  patch_bundle.py",
+        "  bundle_policy.json",
+        "```",
+        "",
+        "bundle.spec:",
+        "```python",
+        "from pathlib import Path",
+        "from shutil import copytree",
+        "import platform",
+        "import sys",
+        "",
+        "policy_file: str | None = None",
+        "if sys.platform == \"linux\" and platform.machine() == \"aarch64\" and options.signing is not None:",
+        "    policy_file = str(Path(SPECPATH) / \"bridge_policy.json\")",
+        "",
+        "build(policy_file=policy_file)",
+        "copytree(Path(\"resources\"), Path(DISTPATH) / \"resources\")",
+        "```",
+        "",
+        "bridge_policy.json:",
+        "```json",
+        "{\"allow_executable_memory\": true}",
+        "```",
+        "",
+        "tools/patch_bundle.py:",
+        "```python",
+        "# NOTE: FreeBSD で辞書のロードが停止するのを防ぐ",
+        "# https://example.invalid/project/issues/172",
+        "patch_bundle(Path(__file__).parent / \"bundle_policy.json\")",
+        "```",
+        "",
+        "tools/bundle_policy.json:",
+        "```json",
+        "{\"skip_dictionary_relocation\": true}",
+        "```",
+        "",
+        "BundleLib 4.2 の確認済み契約: build の policy_file は設定ファイルの任意パスを受け取れます。ファイルはビルド時に消費し、実行時には不要です。この設定以外の権限は変化しません。"
+      ],
+      "assertions": [
+        "同種のビルド補助ファイルがある tools などへの配置整理を任意の改善として提案する",
+        "resources の一括コピーを確認し、ビルド専用設定を不要に配布物へ入れる場所へ移さない",
+        "設定値と条件だけでは防ぐ症状が分からないことを指摘し、短い意図コメントと必要ならIssue参照を提案する",
+        "ビルドや起動の不具合が残っているとは断定せず、配置と意図の整理を修正必須へ上げない"
+      ]
+    },
+    {
+      "id": "build_file_root_required_by_tool",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "ビルドツールはリポジトリ直下の build-policy.json だけを読む公開契約で、パスを変更するオプションはありません。CONTRIBUTING も同ファイルのルート配置を指定しています。PR は初めてこの設定ファイルを追加します。実行時の配布資材に含める処理はありません。内容と目的は設定キーから明らかです。tools に他のビルド用スクリプトはあります。"
+      ],
+      "assertions": [
+        "tools に関連スクリプトがあることだけで設定ファイルの移動を求めない",
+        "配置契約と既存規約を尊重し、ルート配置を問題にしない",
+        "自明な設定へ意図コメントを機械的に求めない"
+      ]
+    },
+    {
+      "id": "workaround_note_environment_and_symptom",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "再レビューです。ビルド設定に追加するコメントを次のように提案しています。近い既存のビルドコメントは NOTE: を使い、行末の句点なし、別行の Issue URL です。Issue #240 にはカーネル、allocator、native bridge の詳細な呼び出し順が記録されています。この設定の必要性はコードだけでは読み取れません。対象環境名がある方がビルド設定を読みやすくなります。コメント案も必要なら示してください。",
+        "近い既存例:",
+        "```python",
+        "# NOTE: FreeBSD で辞書ロードが停止するのを防ぐ",
+        "# https://example.invalid/project/issues/172",
+        "```",
+        "```python",
+        "# NOTE: Linux arm64 の保護機構下で allocator が実行可能領域を予約できず native bridge のスレッド起動時の初期化が待機し続けるため、権限検査を回避して予約を成功させ初期化を進める。",
+        "  # ref: https://example.invalid/project/issues/240",
+        "if sys.platform == \"linux\" and platform.machine() == \"aarch64\":",
+        "    enable_bridge_workaround()",
+        "```"
+      ],
+      "assertions": [
+        "コメントを対象環境と防ぐ症状へ絞る任意の整理を提案する",
+        "詳細な内部機構の列挙をそのまま残すことを必須にしない",
+        "条件式から分かるという理由だけで環境名を削除しない",
+        "近い既存例に合わせNOTEの句点なしと独立したURL行の形式を使い、URLにrefを機械的に足さない"
+      ]
+    },
+    {
+      "id": "local_comment_url_convention_maintained",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR はビルドの回避策を追加します。意図は短い NOTE で明確で、調査先の URL を別行に残しています。追加行も近いビルドファイル3件も `# https://example.invalid/...` という裸の URL です。別領域の Web サーバーには `# ref: https://example.invalid/...` という例が1件あります。明文化された ref の規約はありません。追加されたビルドコメントは次の形です。",
+        "```python",
+        "# NOTE: Linux arm64 で native bridge の初期化が停止するのを防ぐ",
+        "# https://example.invalid/project/issues/240",
+        "```"
+      ],
+      "assertions": [
+        "近い同種のURLコメントに合う現状を修正不要と判断する",
+        "別領域にref付きの例があることだけでref追加を求めない",
+        "全リポジトリや全言語でrefを禁止する規則を作らない"
+      ]
+    },
+    {
+      "id": "nullable_condition_fix_without_unreachable_guard",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR はビルド設定に `if package_label:` を追加します。package_label は str | None です。同じ spec の他の任意引数は `is not None` で判定しています。この spec を呼ぶ現在サポート対象の手順は二つだけで、引数省略時は None、それ以外は固定の非空ラベル release を渡します。利用者入力や空文字列を受け取る経路はありません。変更自体の挙動は正常です。条件式について修正案を示す場合は、具体的なコードも示してください。"
+      ],
+      "assertions": [
+        "同じ役割の近い明示比較へ揃える任意の整理として扱う",
+        "修正案はis not Noneにとどめ、到達しない空文字列の除外を追加しない",
+        "truthinessがこのリポジトリ全体で禁止されていると断定しない",
+        "空文字列の到達による不具合や公開契約違反を捏造しない"
+      ]
+    },
+    {
+      "id": "nullable_condition_reachable_empty_string",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR は公開 CLI のラベル引数を処理する条件を `if package_label is not None and package_label != \"\":` へ変更します。None と空文字列はいずれもラベル無し、その他の文字列はラベル付きとして処理する公開契約です。引数には実際に `--package-label ''` を指定できます。近い任意パス引数は空文字列を受理しないため `is not None` だけで処理しています。"
+      ],
+      "assertions": [
+        "実入力と公開契約で届く空文字列の判定を不要な防御として削除しない",
+        "意味の異なる任意パス引数へ機械的に揃えない",
+        "今回の元事例を一般化して常にNone比較だけにしない"
+      ]
+    },
+    {
+      "id": "receiver_cache_conversion_confirmed_report",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR はビルド設定を追加し、ライブラリへ `manifest_file=str(Path(root) / \"tools\" / \"manifest.json\")` と渡します。他の copytree 呼び出しは Path のまま渡しています。固定版 BundleLib 4.2 の受信後の処理は次のとおりです。ファイルを読む際は Path を受け取れますが、全コンストラクター引数を repr で保存し、後続ビルドで制限した名前空間の eval によって復元します。その名前空間に PosixPath はなく、復元失敗なら全再ビルドします。現在の文字列は保存・復元できます。同じ変更には別の問題はありません。"
+      ],
+      "assertions": [
+        "最初のファイル読み込みだけでなく下流の保存・復元契約を確認し文字列変換を維持する",
+        "copytreeがPathを受けることだけで同じ型を要求しない",
+        "指摘なしに加え、調べた変換の対象、維持する理由、固定版実装という根拠を短く報告する",
+        "問題なしの確認を不具合やインライン指摘にしない"
+      ]
+    },
+    {
+      "id": "normal_code_review_not_all_good_points",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR は `MAX_RETRIES = 2` を `MAX_RETRIES = 3` へ変更します。公開要件のリトライ上限は3回で、実装も回数を直接参照します。変数名、配置、表記、文書との不一致はありません。処理はこの定数以外変わりません。"
+      ],
+      "assertions": [
+        "指摘なしと判断する",
+        "すべての正常箇所を独立した報告項目やインラインコメントにしない",
+        "未確認の型変換、配置、回避策やタイトルの問題を捏造しない"
+      ]
+    },
+    {
+      "id": "review_pr_title_as_merge_subject",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR は翻訳ファイルの不具合を修正します。コードとテストは正しいものとします。現在のPRタイトルは `Correct translation parser edge cases` です。リポジトリ設定は allow_squash_merge=true、squash_merge_commit_title=PR_TITLE です。最近の同種件名は `fix: 辞書の空行を読み飛ばす`、`fix: 検索結果の並び順を修正`、`fix: 翻訳ファイルの文字コードを修正` です。CONTRIBUTING の明示タイトル規約はありません。タイトルはユーザーから指定されたものではありません。"
+      ],
+      "assertions": [
+        "マージ後にそのまま残るタイトルを近い履歴の形式と言語へ揃える任意の改善を指摘する",
+        "コードが正常なことだけでタイトルを調査対象から外さない",
+        "日本語のfix付き案など具体的な修正方向を示す",
+        "重大な不具合や修正必須と扱わず、PR番号やコミットハッシュの手入力を求めない"
+      ]
+    },
+    {
+      "id": "review_title_repository_english_policy",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR は Linux の起動不具合を修正します。現在のタイトルは `fix: prevent Linux startup hang` です。Squash merge の件名にはこのタイトルを使います。CONTRIBUTING は英語の Conventional Commits 形式と末尾句点なしを指定し、最近の件名もその形式です。コードは正常で、タイトルの意味も変更と一致します。"
+      ],
+      "assertions": [
+        "当該リポジトリの英語方針を優先する",
+        "別リポジトリの日本語慣例へ変えるよう求めず、指摘なしとする"
+      ]
+    },
+    {
+      "id": "ordinary_pr_comment_change_before_choice_reason",
+      "prompt_lines": [
+        "レビュー後に作者のブランチへ反映した変更について、作者へ説明する通常 PR コメント案を $refined-review-hiho で整えてください。投稿はせず、文案だけを答えてください。提示情報と指定版スキルの参照ファイルだけを使ってください。",
+        "",
+        "ビルド専用の補助 JSON はルートから tools/ へ移しました。assets/ は配布物へ丸ごと含まれるので候補から外し、同種ファイルのある tools/ を暫定的に選んだ点だけは作者へ説明が必要です。他の3点は、不要な条件の削除、元々無かった意図コメントの追加、既存形式へのタイトル更新であり、別の影響や判断事項はありません。下書き:",
+        "- assets/ に置くと配布物へ含まれるため、ひとまず同種ファイルのある tools/ に補助 JSON を移しました。",
+        "- 現在届かない空文字列のチェックを省きました。",
+        "- 意図を説明するコメントを追加しました。",
+        "- タイトルを fix: 付きへ変更しました。"
+      ],
+      "assertions": [
+        "補助JSONを移した変更を先に述べ、その後に配置先を選んだ理由を続ける",
+        "説明が必要な暫定配置の判断だけを残す",
+        "当然の不要条件削除、コメント追加、タイトル更新を作業一覧として残さない",
+        "差分や内部処理を追加して短い説明を膨らませない",
+        "元の配置をassetsだったと誤認させず、実際の変更内容と候補を区別する"
+      ]
+    },
+    {
+      "id": "ordinary_pr_comment_explicit_complete_inventory",
+      "prompt_lines": [
+        "レビュー後に行った次の全変更を、通常 PR コメント用に $refined-review-hiho で一つずつ列挙してください。今回は作者の監査用なので、明らかな変更も含めて4点すべてを書くことを明示的に求めます。文案だけを答え、投稿や外部アクセスはしないでください。",
+        "1. 補助JSONをルートからtoolsへ移した",
+        "2. 到達経路のない空文字列チェックを削除した",
+        "3. 短い意図コメントを追加した",
+        "4. PRタイトルをfix:付きへ更新した"
+      ],
+      "assertions": [
+        "ユーザーが全件を明示したため4点を残す",
+        "通常の作業一覧を省く規則で明示依頼を上書きしない",
+        "提示されていない理由や影響を追加しない"
+      ]
+    },
+    {
+      "id": "obvious_setting_needs_no_intent_note",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR は公開設定の `output_format = \"wav\"` を追加します。設定は出力形式を選ぶためのもので、同じファイルの `sample_rate` や `channels` にも処理を説明するコメントはありません。この設定は回避策でも権限例外でもなく、設定名と値だけで意図が明らかです。仕様どおりに動作し、配置も既存形式です。"
+      ],
+      "assertions": [
+        "設定を追加したという理由だけでNOTEやIssue参照を要求しない",
+        "コードから明らかな意図をコメントで繰り返すよう求めず、指摘なしとする"
+      ]
+    },
+    {
+      "id": "different_nullable_semantics_preserved",
+      "prompt_lines": [
+        "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+        "",
+        "PR は `if label is not None:` を追加します。同じファイルの他の文字列オプションは `if value:` を使っていますが、それらは空文字列を未指定とみなす契約です。新しいlabelでは空文字列が有効な値で、Noneだけが未指定です。ユーザーは空文字列を実際に指定できます。公開契約にこの違いが明記されており、現在の条件で正しく処理します。"
+      ],
+      "assertions": [
+        "周囲と見た目が違っても入力の意味が異なるためNone比較を維持する",
+        "周囲との統一だけを理由にtruthinessへ直して有効な空文字列を落とさない",
+        "指摘する代わりに必要なら差が妥当な理由を確認結果として扱う"
+      ]
     }
   ]
 }

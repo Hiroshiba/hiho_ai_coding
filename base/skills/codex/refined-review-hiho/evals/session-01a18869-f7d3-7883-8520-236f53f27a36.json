@@ -1,0 +1,1290 @@
+{
+  "workflow": "指定された hiho_get_codex_session_jsonl_paths が返した対象ログだけを分析した。公式 skill-creator の既存スキル更新、独立 forward-testing、quick_validate を使用した。別名スキルや独自のログ探索・評価実行基盤は作成せず、一時コピーと既存形式の評価ケースで比較した。",
+  "evaluation_method": {
+    "comparison": "旧版と試作版を別々の fork_turns=none の独立エージェントへ渡し、同じ匿名依頼22件へ実回答を得た。各評価者へ公式skill-creator、該当版のSKILL.mdと必要な参照ファイル、依頼と原資料だけを渡し、元セッション、学習候補、期待結果、assertions、他方の版と回答を渡していない。親が実回答の意味をassertionsへ照合した。",
+    "initial": {
+      "attempted_cases": 22,
+      "scored_cases": 20,
+      "baseline_passed": 19,
+      "candidate_passed": 20,
+      "excluded_case_ids": [
+        "build_only_file_placement_and_missing_intent",
+        "workaround_note_environment_and_symptom"
+      ],
+      "reason": "初回の配置・意図ケースは検出すべき問題点を入力で説明していた。初回のコメント推敲ケースはrefの有無を明示していないのにassertionで裸URLを要求していた。この2件の初回答は保存するが、有効な比較の採点から除外した。"
+    },
+    "input_corrections": [
+      {
+        "id": "build_only_file_placement_and_missing_intent",
+        "blind_id": "case_1",
+        "problem": "設定値から意図が分からないという事前の判断を入力へ渡し、検出評価を誘導していた。",
+        "change": "その判断を削除し、PR本文、配置一覧、追加JSON、specの参照と配布処理、近い既存コメント、固定版の契約という原資料だけに置き換えた。",
+        "retest": "両版をそれぞれ別の新しい独立エージェントで比較した。旧版は指摘なし、試作版は配置と意図不足を任意で検出した。"
+      },
+      {
+        "id": "workaround_note_environment_and_symptom",
+        "blind_id": "case_3",
+        "problem": "近い例は別行のURLだとの説明しかなく、refなしという期待を裏付けていなかった。",
+        "change": "近い既存例のNOTEと裸URLの実コードを追加した。",
+        "retest": "両版をそれぞれ別の新しい独立エージェントで比較した。両版とも環境と症状へ短縮し、裸URLへ揃えた。初回の見かけの差を改善として数えない。"
+      }
+    ],
+    "answer_selection": "case_1とcase_3には修正入力での再評価回答を使い、残り20件には初回答を使う。初回答と修正版の回答を混同せず別に保存した。",
+    "baseline": {
+      "passed": 20,
+      "total": 22,
+      "new_cases": {
+        "passed": 12,
+        "total": 14
+      },
+      "regression_cases": {
+        "passed": 8,
+        "total": 8
+      }
+    },
+    "candidate": {
+      "passed": 22,
+      "total": 22,
+      "new_cases": {
+        "passed": 14,
+        "total": 14
+      },
+      "regression_cases": {
+        "passed": 8,
+        "total": 8
+      }
+    },
+    "improved_cases": [
+      "build_only_file_placement_and_missing_intent",
+      "ordinary_pr_comment_change_before_choice_reason"
+    ],
+    "improvement": "問題点を説明しない原コードのケースでは、旧版が配置と意図不足を見落とし、試作版は両方を任意で検出した。通常PRコメントでは両版が当然の作業を省けた一方、旧版は理由先行、試作版は変更先行だった。",
+    "regressions": 0,
+    "final_adjustment": "改善差がなかった周囲と異なる記法の一般規則、到達不能な防御条件、問題なしの確認報告、マージ件名になるタイトルの規則を外した。投稿文は変更先行の順序だけ残し、既にできていた作業一覧の選別例や例外は追加しなかった。ビルド用ファイルの配置と回避策の短い意図の2規則、対応する参照条件だけを追加した。",
+    "final": {
+      "passed": 11,
+      "total": 11,
+      "method": "絞った最終版を、旧版と試作版の回答を見ていない新しい fork_turns=none の独立エージェントへ渡した。修正済みの入力を使い、残した規則の検出・正常系・対象外・投稿文とレビュー指摘の境界・起動境界を11件で確認した。",
+      "case_ids": [
+        "build_only_file_placement_and_missing_intent",
+        "build_file_root_required_by_tool",
+        "workaround_note_environment_and_symptom",
+        "local_comment_url_convention_maintained",
+        "ordinary_pr_comment_change_before_choice_reason",
+        "ordinary_pr_comment_explicit_complete_inventory",
+        "obvious_setting_needs_no_intent_note",
+        "routing_review_session_analysis",
+        "pr_progress_comment_decisions_only",
+        "review_evidence_link_outside_posting_rule",
+        "routing_explicit_review_not_session_refinement"
+      ],
+      "case_results": [
+        {
+          "blind_id": "case_1",
+          "passed": true,
+          "reason": "配置の散在と回避策の意図不足をともに任意で検出し、同種配置と一括配布を照合した。"
+        },
+        {
+          "blind_id": "case_2",
+          "passed": true,
+          "reason": "ツールと規約が要求するルート配置を移すよう求めなかった。"
+        },
+        {
+          "blind_id": "case_3",
+          "passed": true,
+          "reason": "環境と防ぐ症状を短く残し、詳細をIssueへ任せ、明示した近い既存例の書式へ揃えた。"
+        },
+        {
+          "blind_id": "case_4",
+          "passed": true,
+          "reason": "近いビルドコメントと合う裸URLを修正不要とした。"
+        },
+        {
+          "blind_id": "case_11",
+          "passed": true,
+          "reason": "移した変更を先に述べ、その後へ暫定的な配置先の選択理由を続けた。当然の作業を省いた。"
+        },
+        {
+          "blind_id": "case_12",
+          "passed": true,
+          "reason": "全件を求める明示依頼に従って4点を列挙した。"
+        },
+        {
+          "blind_id": "case_13",
+          "passed": true,
+          "reason": "自明な設定へ説明コメントやIssue参照を求めなかった。"
+        },
+        {
+          "blind_id": "case_18",
+          "passed": true,
+          "reason": "過去セッションの分析と改善を通常レビューの適用対象外とした。"
+        },
+        {
+          "blind_id": "case_19",
+          "passed": true,
+          "reason": "既存の選別を保ち、2判断を変更から述べて理由を続け、裁量的な語調を維持した。"
+        },
+        {
+          "blind_id": "case_20",
+          "passed": true,
+          "reason": "レビュー指摘には具体的な空入力の失敗と契約上の修正方向、根拠リンクを残した。通常PRコメントの省略規則を適用しなかった。"
+        },
+        {
+          "blind_id": "case_22",
+          "passed": true,
+          "reason": "明示されたPR再レビューにrefined-review-hihoを選び、改善スキルを起動しなかった。"
+        }
+      ]
+    },
+    "limitations": [
+      "各版の各ケースを一度ずつ評価した結果であり、統計的な再現率や改善率を測定していない。",
+      "配置と意図の検出は一つの原コードケースで確認した。各規則を単独で加えたときの寄与を分離していない。",
+      "提示資料による合成ケースであり、未知の実リポジトリから調査先を発見する性能、プロダクトの動作、ビルド、GitHub投稿を検証したものではない。",
+      "既存80ケースのうち関連する8ケースを回帰比較した。既存全ケースの再実行はしていない。最終版の独立評価は影響に関係する11件へ絞った。",
+      "元セッションの最終的なユーザー書き換え全文は728行にも735行のコメント取得にもない。明示訂正された順序と不要な作業の選別だけを扱い、721行のCodex文案を最終投稿の正解としていない。",
+      "元セッションは実際の署名付きエンジンのビルド・起動・音声合成を確認していない。改善規則は保守性とレビュー報告の範囲であり、権限設定の実環境での有効性を新たに保証しない。"
+    ],
+    "case_results": [
+      {
+        "id": "build_only_file_placement_and_missing_intent",
+        "blind_id": "case_1",
+        "answer_source": "corrected_build_input",
+        "baseline": {
+          "passed": false,
+          "reason": "原コードと配置を示す修正版では指摘なしとし、新設するビルド専用設定の散在と回避策の意図欠落を見落とした。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "同種のビルド補助ファイルへの配置整理と短い意図コメントを任意として指摘し、一括配布されるresourcesへ移さなかった。"
+        }
+      },
+      {
+        "id": "build_file_root_required_by_tool",
+        "blind_id": "case_2",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "指摘なしとし、ツールと規約が必要とするルート配置を問題にしなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "ルート配置の契約と規約を根拠に、不要な移動を求めなかった。"
+        }
+      },
+      {
+        "id": "workaround_note_environment_and_symptom",
+        "blind_id": "case_3",
+        "answer_source": "corrected_comment_input",
+        "baseline": {
+          "passed": true,
+          "reason": "裸URLの近い既存例を明示した修正版では、環境と症状へ絞ったNOTE、句点なし、裸URLへ揃えた。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "修正版で同じ短縮と書式整合を行い、詳細をIssueへ任せた。"
+        }
+      },
+      {
+        "id": "local_comment_url_convention_maintained",
+        "blind_id": "case_4",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "現状を指摘なしとし、別領域のref付き記法を強制しなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "近いビルドファイルの書式へ合う現状を問題にしなかった。"
+        }
+      },
+      {
+        "id": "nullable_condition_fix_without_unreachable_guard",
+        "blind_id": "case_5",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "同じspecへ揃える任意のNone比較だけを提案し、空文字列の防御を足さなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "None比較のみを任意で提案し、到達しない空文字列を除外する理由がないと説明した。"
+        }
+      },
+      {
+        "id": "nullable_condition_reachable_empty_string",
+        "blind_id": "case_6",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "指摘なしとし、実際に届く空文字列の判定を削除しなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "実入力と公開契約の違いを説明し、必要な条件を残した。"
+        }
+      },
+      {
+        "id": "receiver_cache_conversion_confirmed_report",
+        "blind_id": "case_7",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "指摘なしに加え、固定版の保存・復元にも文字列化が対応する理由を短く報告した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "下流の保存・復元まで追い、Pathの復元失敗と文字列を維持する理由を報告した。"
+        }
+      },
+      {
+        "id": "normal_code_review_not_all_good_points",
+        "blind_id": "case_8",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "指摘なしの一文とし、正常箇所の一覧を作らなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "指摘なしと短い要件確認にとどめ、正常箇所を列挙しなかった。"
+        }
+      },
+      {
+        "id": "review_pr_title_as_merge_subject",
+        "blind_id": "case_9",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "PRタイトルがマージ後の件名になることを理由に、履歴へ揃えた日本語のfix付き案を任意で示した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "マージ設定と履歴を照合し、同じ形式の修正方向を任意で示した。"
+        }
+      },
+      {
+        "id": "review_title_repository_english_policy",
+        "blind_id": "case_10",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "指摘なしとし、英語方針に合うタイトルを変更しなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "英語の明示規約へ従うタイトルを妥当と判断した。"
+        }
+      },
+      {
+        "id": "ordinary_pr_comment_change_before_choice_reason",
+        "blind_id": "case_11",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": false,
+          "reason": "当然の3作業は省いたが、配置候補を避けた理由から書き始め、何を変更したかを後置した。元セッションの明示的な順序の訂正を再現できなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "補助JSONを移した変更を先に述べ、その後に暫定配置の理由を続けた。当然の3作業も省いた。"
+        }
+      },
+      {
+        "id": "ordinary_pr_comment_explicit_complete_inventory",
+        "blind_id": "case_12",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "全件を求める明示依頼に従い、4点を残した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "同じく4点を残し、通常の選別で明示依頼を上書きしなかった。"
+        }
+      },
+      {
+        "id": "obvious_setting_needs_no_intent_note",
+        "blind_id": "case_13",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "指摘なしとし、自明な設定へ説明コメントを要求しなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "設定名と値で意図が分かることを確認し、コメント追加を求めなかった。"
+        }
+      },
+      {
+        "id": "different_nullable_semantics_preserved",
+        "blind_id": "case_14",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "指摘なしとし、空文字列が有効なNone比較を維持した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "異なる入力の意味を根拠に、周囲と違う判定を妥当とした。"
+        }
+      },
+      {
+        "id": "test_layer_and_tracked_issue",
+        "blind_id": "case_15",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "指摘なしとし、E2Eの重複や別Issueの課題を要求しなかった。判断の根拠の詳しい説明はしていない。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "単体テストの網羅とAPI E2Eの責務分担を理由に、追加要求をしなかった。"
+        }
+      },
+      {
+        "id": "pr_scoped_ui_posting",
+        "blind_id": "case_16",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "タイトルへ操作範囲を含め、概要から実装識別子を省き、固定版の通知契約と変更方針を分けた。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "同じ範囲と利用者向け概要を保ち、判断理由に固定版の契約と変更方針を示した。"
+        }
+      },
+      {
+        "id": "closed_union_mapping_array",
+        "blind_id": "case_17",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "現在の対応は正しいまま、型追加時の更新漏れを型検査で検出する任意の改善を提案した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "同じ保守性の問題を任意とし、Recordか網羅的switchを示した。"
+        }
+      },
+      {
+        "id": "routing_review_session_analysis",
+        "blind_id": "case_18",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "過去セッションの分析とスキル改善を通常レビューの適用対象外とした。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "同じ適用境界を維持した。"
+        }
+      },
+      {
+        "id": "pr_progress_comment_decisions_only",
+        "blind_id": "case_19",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "作者への説明が必要なカーソルと規約削除の2判断だけを、裁量が分かる語調で示した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "同じ2判断に絞り、作業一覧を残さず裁量を示した。"
+        }
+      },
+      {
+        "id": "review_evidence_link_outside_posting_rule",
+        "blind_id": "case_20",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "空入力の契約違反と終了失敗、最終非空要素でのfinish指定、根拠リンクを残した。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "レビュー指摘の条件、影響、修正方向とリンクを残し、投稿文の省略規則を持ち込まなかった。"
+        }
+      },
+      {
+        "id": "refactor_try_and_let_sibling_exports",
+        "blind_id": "case_21",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "両経路のsettingsをtry前のconstにする任意の整理を提案し、通信と読み切り、必要な通知を維持した。新規の誤分類とは断定しなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "同じ整理と通知契約を保ち、元の捕捉範囲も明示して新規不具合と区別した。"
+        }
+      },
+      {
+        "id": "routing_explicit_review_not_session_refinement",
+        "blind_id": "case_22",
+        "answer_source": "initial",
+        "baseline": {
+          "passed": true,
+          "reason": "明示された通常のPR再レビューへrefined-review-hihoを選び、改善スキルを起動しなかった。"
+        },
+        "candidate": {
+          "passed": true,
+          "reason": "同じ起動境界を維持した。"
+        }
+      }
+    ]
+  },
+  "rule_changes": {
+    "added": [
+      "references/session-derived-rules.md: 新設するビルド用ファイルの配置を確認する",
+      "references/session-derived-rules.md: 回避策の必要性を短く残す"
+    ],
+    "modified": [
+      "SKILL.md: セッション由来の規則を読む条件へビルド用ファイルの配置と回避策の意図を追加する",
+      "references/github-posting-rules.md: 通常PRコメントでは変更を先に述べ、その後に理由を続ける"
+    ],
+    "removed_or_replaced": [],
+    "unchanged": [
+      "明示起動のみのdescriptionとagents/openai.yamlのpolicy",
+      "今回の変更が発生または悪化させた問題だけを扱う指摘条件",
+      "既存の依存契約、重大度、テスト、投稿文の選別、レビュー指摘と投稿文の分離"
+    ]
+  },
+  "trial_changes": {
+    "added": [
+      "ビルド用ファイルの配置",
+      "周囲と異なる記法の必要性",
+      "回避策の短い意図",
+      "マージ後の件名になるPRタイトル",
+      "修正案で到達不能な防御条件を追加しない条件",
+      "妥当と確認した記述の短い報告"
+    ],
+    "modified": [
+      "通常PRコメントの変更先行と作業一覧の選別例・明示依頼の例外",
+      "参照ファイルを読む条件"
+    ],
+    "adopted": "一部だけ採用",
+    "not_adopted_reason": "原コードの検出で改善した配置と意図、通常PRコメントの順序以外は旧版でも同じ判断ができた。試作規則をまとめて残さず、最終版を狭めて独立評価した。"
+  },
+  "final_state": "ビルド用ファイルの配置と回避策の短い意図の2規則を追加し、通常PRコメントは変更先行の順序だけを既存規則へ統合した。ほかの候補は改善差がないため反映しない。評価ケース14件と分析・比較記録を追加する。",
+  "validation": {
+    "quick_validate": "公式skill-creatorのquick_validate.pyで旧版、試作版、最終版が成功。uv経由でPyYAMLのあるシステムPythonを使い、ネットワーク取得は行っていない。",
+    "cases_json": "既存80ケースを完全に保持し、今回の14ケースを追加して94件。入力不備の2件は修正した原資料を保存する。JSON構文、ID重複なし、依頼とassertionsの存在を確認した。",
+    "session_record": "初回答22件ずつ、入力補正後の再回答2件ずつ、最終回答11件と、22件の採点理由を分けて保存した。",
+    "production_code": "変更なし",
+    "git": "実行なし"
+  },
+  "changed_files": [
+    "/home/hihok/Github/hiho_ai_coding/base/skills/codex/refined-review-hiho/SKILL.md",
+    "/home/hihok/Github/hiho_ai_coding/base/skills/codex/refined-review-hiho/references/session-derived-rules.md",
+    "/home/hihok/Github/hiho_ai_coding/base/skills/codex/refined-review-hiho/references/github-posting-rules.md",
+    "/home/hihok/Github/hiho_ai_coding/base/skills/codex/refined-review-hiho/evals/cases.json",
+    "/home/hihok/Github/hiho_ai_coding/base/skills/codex/refined-review-hiho/evals/session-01a18869-f7d3-7883-8520-236f53f27a36.json"
+  ],
+  "session_id": "01a18869-f7d3-7883-8520-236f53f27a36",
+  "skill_name": "refined-review-hiho",
+  "skill_path": "/home/hihok/Github/hiho_ai_coding/base/skills/codex/refined-review-hiho/SKILL.md",
+  "source_log": "/home/hihok/.codex/sessions/2026/10/30/rollout-2026-10-30T01-06-48-01a18869-f7d3-7883-8520-236f53f27a36.jsonl",
+  "related_logs": [],
+  "review_cases": [
+    {
+      "id": "missed_build_configuration_conventions",
+      "classification": [
+        "設計、責務、抽象化",
+        "コメントとドキュメント",
+        "コーディングスタイルと既存コードとの一貫性",
+        "レビューコメントの具体性、理由、重大度"
+      ],
+      "change": "署名付き macOS x64 ビルドの ctypes 初期化停止を防ぐ権限を追加する PR #1910。ビルド用 plist をルートへ新設し、spec の条件式で指定する。",
+      "before": "対象権限も理由のコメントもなかった。spec の同種任意引数は None を明示比較していた。既存のビルド用ファイルは tools にあり、resources は一括して配布物へコピーされる。",
+      "initial_review": {
+        "lines": [
+          173
+        ],
+        "summary": "固定版ライブラリで適用条件と権限の挙動を確認したが、配置、意図の読み取り、周囲の細かな慣例を十分に確認せず指摘なしとした。"
+      },
+      "user_corrections": {
+        "lines": [
+          180,
+          299
+        ],
+        "summary": "新規ファイルは同種配置を探し、コードから権限の必要理由が分からない点を検出すべきと明示。nullable 条件や型変換など特殊な書き方は周囲と受け側を調査し、疑問が解消した点も報告するよう指定。句読点と書式も周囲へ合わせるよう指定。"
+      },
+      "rereview": {
+        "lines": [
+          292
+        ],
+        "summary": "tools への移動、同じ spec の明示比較、意図コメント、PR タイトルの修正を提案。重大度は元尺度の問題度2で、実動作の欠陥とはしなかった。"
+      },
+      "outcome": {
+        "lines": [
+          333,
+          430,
+          435,
+          546,
+          569
+        ],
+        "summary": "変更を承認され、配置変更、条件式、コメント、PR タイトルをコミットしてプッシュした。後続訂正は別事例を参照。固定版のビルドや起動での再検証は行っていない。"
+      }
+    },
+    {
+      "id": "receiver_contract_justifies_string_conversion",
+      "classification": [
+        "正しさ、仕様との一致",
+        "パフォーマンスとリソース管理",
+        "レビューコメントの具体性、理由、重大度"
+      ],
+      "review": {
+        "lines": [
+          180,
+          292
+        ],
+        "summary": "Path を文字列へ変換する必要性と署名識別子の型が疑問になった。固定版実装で署名識別子は文字列識別子、設定パスはキャッシュに保存・復元され Path の復元では再ビルドになると判明。単一の読み込み関数が Path を受けられるだけで変換を削除しなかった。"
+      },
+      "user_confirmation": {
+        "lines": [
+          299
+        ],
+        "summary": "再レビューを肯定し、気になって調べた結果が問題なしでも報告するよう明示。"
+      },
+      "outcome": "文字列を維持。ライブラリ固有の型規則を全 API へ拡大しない。"
+    },
+    {
+      "id": "unreachable_empty_string_guard_removed",
+      "classification": [
+        "境界条件、エラー経路、並行処理",
+        "複雑さ、過剰設計、保守性"
+      ],
+      "initial_proposal": {
+        "lines": [
+          292
+        ],
+        "summary": "truthiness を明示比較へ直す際に None 比較だけでなく空文字列比較も提案。受け側が空文字列で署名しない挙動を保存するためとしていた。"
+      },
+      "user_correction": {
+        "lines": [
+          460
+        ],
+        "summary": "空文字列が来る具体的な経路がないため不要と明示して削除を指示。"
+      },
+      "adopted_fix": {
+        "lines": [
+          546,
+          551,
+          569
+        ],
+        "summary": "空文字列比較を削除し、None 比較だけ残してコミット・プッシュ。"
+      },
+      "outcome": "元の空文字列チェックを正の規則にしない。明示比較への整理でも、到達不能な値に備える条件を修正案へ足さない。"
+    },
+    {
+      "id": "workaround_note_shortened_with_local_comment_style",
+      "classification": [
+        "コメントとドキュメント",
+        "コーディングスタイルと既存コードとの一貫性"
+      ],
+      "initial_proposal": {
+        "lines": [
+          292,
+          326
+        ],
+        "summary": "Hardened Runtime と libffi のメモリ確保を詳しく説明し、条件式から分かる macOS x64 は省いた NOTE と別行の Issue URL を提案した。"
+      },
+      "user_corrections": {
+        "lines": [
+          299,
+          518,
+          575
+        ],
+        "summary": "各語の必要性と誤解を吟味し周囲の句読点・書式に合わせることを要求。ビルド設定は読みにくいため環境名は重なっても残し、NOTE は対象環境と防ぐ症状へ絞り詳細は Issue で追える形に訂正。URL の ref 有無も周囲を調べるべきと明示。"
+      },
+      "adopted_fix": {
+        "lines": [
+          546,
+          551,
+          569,
+          600,
+          676
+        ],
+        "summary": "環境と症状に絞った NOTE をコミット・プッシュ。URL 書式は近い既存例と同種の多数パターンを確認して ref なしのまま維持。全リポジトリで ref を禁止したわけではない。"
+      },
+      "outcome": "必要な意図を短く残す。条件式と同じ語を一律に削らず、詳細な原因を常にコメントへ列挙しない。"
+    },
+    {
+      "id": "pr_title_becomes_merge_subject",
+      "classification": [
+        "コーディングスタイルと既存コードとの一貫性",
+        "GitHub へ投稿する文章の書き方"
+      ],
+      "user_correction": {
+        "lines": [
+          180,
+          299
+        ],
+        "summary": "PR タイトルがマージ後のコミット件名になるため、履歴の形式、言語、句読点も確認すべきと指示。"
+      },
+      "confirmed_context": {
+        "lines": [
+          201,
+          292
+        ],
+        "summary": "Squash merge の PR_TITLE 設定と最近の type 付き日本語件名を確認。末尾番号は PR 番号であり、ハッシュを足す慣例はない。"
+      },
+      "adopted_fix": {
+        "lines": [
+          326,
+          333,
+          430
+        ],
+        "summary": "fix: macOS x64 の署名付きエンジンが起動しない問題を修正 へ更新し確認。"
+      }
+    },
+    {
+      "id": "ordinary_pr_comment_pruned_and_reordered",
+      "classification": [
+        "GitHub へ投稿する文章の書き方"
+      ],
+      "initial_draft": {
+        "lines": [
+          676
+        ],
+        "summary": "配置変更、None 比較と空文字列チェック削除、意図コメントの整理、PR タイトル修正を4項目で説明。配置は理由を先に述べた。"
+      },
+      "user_correction": {
+        "lines": [
+          683
+        ],
+        "summary": "移動という変更を先に述べるよう訂正。空文字列チェック削除は当然、元々ないコメントの追加・タイトル変更は見れば分かるので削除し、配置の判断だけ残すよう指定。"
+      },
+      "redraft": {
+        "lines": [
+          721
+        ],
+        "summary": "配置変更と理由の二文へ縮小。"
+      },
+      "final_wording_limit": {
+        "lines": [
+          728,
+          735
+        ],
+        "summary": "ユーザーが語弊を避けて書き換えたと述べたが、その文面はログにない。後のコメント取得にも当該ユーザー文は出ていない。最終投稿文や追加の語弊の内容は特定できない。"
+      },
+      "outcome": "明示的に確定した削除対象と変更先行の順序だけを候補とする。721行の文案全体を正解文例として学習しない。"
+    }
+  ],
+  "other_exclusions": [
+    {
+      "candidate": "署名設定の適用条件と固定版挙動を確認する新規規則",
+      "reason": "既存の依存契約・固定版根拠の規則で扱える。"
+    },
+    {
+      "candidate": "ビルド用ファイルは常にtoolsへ置く",
+      "reason": "今回の暫定配置判断であり、ツールの契約や他リポジトリへ一般化しない。"
+    },
+    {
+      "candidate": "非boolean判定は全リポジトリで禁止",
+      "reason": "同リポジトリに既存例があり、全体禁止は確認されなかった。周囲と役割の一致で判断する。"
+    },
+    {
+      "candidate": "全パスをPathへ変え型変換を削る",
+      "reason": "受け側のキャッシュ契約が文字列を必要としたため誤り。"
+    },
+    {
+      "candidate": "コメントは必ず原因の詳細を列挙し条件式と重複する語を除く",
+      "reason": "明示的に訂正され、読みやすさのため環境を残して症状へ絞った。"
+    },
+    {
+      "candidate": "コメントURLのrefを全リポジトリで禁止",
+      "reason": "今回の周囲の多い形式を維持しただけ。"
+    },
+    {
+      "candidate": "Conventional Commitsを投稿文の新規規則にする",
+      "reason": "既存規則と重複。"
+    },
+    {
+      "candidate": "721行の文案を最終投稿の正解例にする",
+      "reason": "728行でさらに語弊の訂正があったが、その文面はログにない。ユーザーの明示訂正だけを学ぶ。"
+    },
+    {
+      "candidate": "自然な日本語スキルの自動起動",
+      "reason": "元セッション内で明示利用されただけ。現在の作業で新規に起動したり常用必須にしない。既存の明示指定時の再適用規則も重複。"
+    },
+    {
+      "candidate": "git操作、プッシュ、worktreeの手順",
+      "reason": "一度限りの作業でレビュー規則ではない。このセッションではgitを実行しない。"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "check_new_build_file_placement",
+      "type": "レビュー時の検出規則",
+      "scope": "ビルド専用の設定・補助ファイルを新設または移動する変更",
+      "check": "同種ファイルの置き場、参照方法、候補ディレクトリの配布物への取り込みを調べる。",
+      "report_condition": "専用ファイルが同種配置から外れ、まとまりを失うか配布物へ不要に含まれることが確認できる。",
+      "risk": "関連設定が散在し不要な配布資材にもなる。",
+      "exception": "明示された配置規約やツールの固定配置契約がある場合。ルートや resources を一律禁止しない。",
+      "severity": "整理だけなら任意。具体的な配布影響に合わせる。",
+      "evidence_case": "missed_build_configuration_conventions",
+      "confidence": "高",
+      "existing_rule": "目的と周囲の慣例を確認する具体手順は未掲載。既存の指摘選別の条件と統合する。",
+      "decision": "採用",
+      "reason": "問題点を説明しない原コードの比較で、旧版は配置の散在を見落とし、試作版は既存配置と一括配布を調べて任意の整理として検出した。",
+      "evidence_lines": [
+        180,
+        292,
+        299,
+        333,
+        430
+      ],
+      "evaluation_cases": [
+        "build_only_file_placement_and_missing_intent",
+        "build_file_root_required_by_tool"
+      ]
+    },
+    {
+      "id": "check_nonobvious_forms_against_local_contract",
+      "type": "レビュー時の検出規則",
+      "scope": "任意値の判定、型変換、コメント記法など周囲と差がある新規記述",
+      "check": "同じ役割の近い既存例と入力・受け側の契約を照合し、差の必要性を確かめる。",
+      "report_condition": "差を正当化する契約がなく、同種箇所と違う解釈や保守負担を今回増やす。",
+      "risk": "偶然の記法一致や見た目だけで判断して確認漏れ・誤指摘になる。",
+      "exception": "一部に別記法があるだけで禁止を断定しない。固定版の保存・キャッシュなどに差の理由があれば維持。",
+      "severity": "記法の改善は任意。挙動が違うと確認できた場合だけ影響に応じる。",
+      "evidence_case": "missed_build_configuration_conventions",
+      "confidence": "高",
+      "existing_rule": "固定版依存の根拠は既存手順5と重複。特殊な書き方の調査と周囲照合へ絞り、型変換だけの新規規則は増やさない。",
+      "decision": "見送り",
+      "reason": "nullableと型変換の判断は両版で同じ。URLの初回差は入力のref有無が不明なため採点せず、実例を補った再評価では両版が同じ形式へ揃えた。",
+      "evidence_lines": [
+        180,
+        299,
+        575,
+        600
+      ],
+      "evaluation_cases": [
+        "workaround_note_environment_and_symptom",
+        "local_comment_url_convention_maintained",
+        "nullable_condition_fix_without_unreachable_guard",
+        "receiver_cache_conversion_confirmed_report",
+        "different_nullable_semantics_preserved"
+      ]
+    },
+    {
+      "id": "record_workaround_intent_concisely",
+      "type": "レビュー時の検出規則",
+      "scope": "目的が実装だけでは読み取りにくいビルド設定や回避策",
+      "check": "なぜ必要か、外すと何が起きるかをソース内で把握できるか確認する。",
+      "report_condition": "条件と設定値しか分からず、必要性が PR や Issue にしかなく、将来誤って削除され得る。",
+      "risk": "保守時に意図を追えず回避策を削除して症状を再発させる。",
+      "exception": "意味がコードから明らかならコメント追加不要。関連 Issue で詳細を追えるならコメントは環境と防ぐ症状程度へ絞る。条件式と語が重なることだけで削らない。",
+      "severity": "原則として任意",
+      "evidence_case": "workaround_note_shortened_with_local_comment_style",
+      "confidence": "高",
+      "existing_rule": "コメント単独の具体性はレビュー文の規則なので、ソースの意図コメントとは混ぜない。",
+      "decision": "採用",
+      "reason": "原コードの比較で、旧版は意図の記録不足を見落とし、試作版は対象環境と防ぐ症状を短く残す改善を任意として検出した。自明な設定では求めなかった。",
+      "evidence_lines": [
+        180,
+        299,
+        518,
+        546,
+        569
+      ],
+      "evaluation_cases": [
+        "build_only_file_placement_and_missing_intent",
+        "workaround_note_environment_and_symptom",
+        "obvious_setting_needs_no_intent_note"
+      ]
+    },
+    {
+      "id": "avoid_unreachable_guards_in_review_fixes",
+      "type": "レビューコメントの書き方",
+      "scope": "任意値の条件式を整理する修正提案",
+      "check": "型が表現できる値と実際の入力経路を区別する。",
+      "report_condition": "到達経路を挙げられない値への防御条件を追加または維持する提案になっている。",
+      "risk": "不要な分岐とメンテナンス対象が増える。",
+      "exception": "空文字列などが実入力や明示契約で届くなら必要条件を残す。",
+      "severity": "整理だけなら任意",
+      "evidence_case": "unreachable_empty_string_guard_removed",
+      "confidence": "高",
+      "existing_rule": "型だけで公開契約違反と断定しない規則と近いが、修正案への不要な防御追加は未記載。統合を検討。",
+      "decision": "見送り",
+      "reason": "両版とも到達しない空文字列チェックを追加せず、実際に届く空文字列の条件は維持した。追加規則による改善差がない。",
+      "evidence_lines": [
+        460,
+        546,
+        551,
+        569
+      ],
+      "evaluation_cases": [
+        "nullable_condition_fix_without_unreachable_guard",
+        "nullable_condition_reachable_empty_string"
+      ]
+    },
+    {
+      "id": "report_investigated_no_issue",
+      "type": "レビューコメントの書き方",
+      "scope": "不審に見える記述を調査して妥当と確認したレビュー報告",
+      "check": "調べた対象と維持する理由を確認できる根拠へ結ぶ。",
+      "report_condition": "指摘数を増やさず確認結果として短く残す。数値尺度を併用するなら問題度0。",
+      "risk": "調査済みの理由が読者へ伝わらず、同じ疑問への再調査や不適切な簡素化が起きる。",
+      "exception": "すべての正常箇所を列挙しない。インライン投稿を増やす規則にしない。別の明示出力形式へ従う。",
+      "severity": "問題なしとして扱う",
+      "evidence_case": "receiver_contract_justifies_string_conversion",
+      "confidence": "高",
+      "existing_rule": "現在の出力は指摘と未検証事項のみ。既存の形式尊重と合わせて統合が必要。",
+      "decision": "見送り",
+      "reason": "旧版でも文字列変換の対象と固定版の保存・復元に必要な理由を短く報告できた。全正常箇所を列挙する問題もなかった。",
+      "evidence_lines": [
+        292,
+        299
+      ],
+      "evaluation_cases": [
+        "receiver_cache_conversion_confirmed_report",
+        "normal_code_review_not_all_good_points"
+      ]
+    },
+    {
+      "id": "review_title_if_used_for_merge_subject",
+      "type": "レビュー時の検出規則",
+      "scope": "PR タイトルがマージ後の件名になるリポジトリのレビュー",
+      "check": "マージ設定、同種の最近の件名、タイトルの形式・言語・句読点を照合する。",
+      "report_condition": "同種の慣例から新規タイトルが外れている。",
+      "risk": "永続する履歴の表記が不統一になる。",
+      "exception": "全プロジェクトへ日本語や特定接頭辞を強制せず、確認したリポジトリ内だけ。ハッシュや番号の自動付与を手入力させない。",
+      "severity": "任意",
+      "evidence_case": "pr_title_becomes_merge_subject",
+      "confidence": "高",
+      "existing_rule": "投稿文にはConventional Commits規則がある。初回レビューでタイトルを調べる観点と、当該リポジトリの言語・句読点へ絞る。",
+      "decision": "見送り",
+      "reason": "旧版でもマージ後の件名と履歴を照合し、ローカルな言語と形式へ任意で揃え、英語方針の別リポジトリへは広げなかった。",
+      "evidence_lines": [
+        180,
+        201,
+        292,
+        333,
+        430
+      ],
+      "evaluation_cases": [
+        "review_pr_title_as_merge_subject",
+        "review_title_repository_english_policy"
+      ]
+    },
+    {
+      "id": "ordinary_comment_change_before_reason_and_omit_obvious_edits",
+      "type": "GitHub へ投稿する文章の書き方",
+      "scope": "レビュー後に作者へ変更理由を説明する通常 PR コメント",
+      "check": "何を変更したかを先に置き、作者に説明が必要な選択理由だけ続ける。",
+      "report_condition": "理由が先行して変更が不明か、当然の整理・差分やタイトルを見れば分かる作業が混ざる。",
+      "risk": "作者に必要な判断が作業一覧に埋もれ、変更を理解しにくくなる。",
+      "exception": "ユーザーが全変更一覧を求めた場合や、一見自明な変更にも非自明な影響がある場合は説明する。レビュー指摘の根拠・修正方向を削る規則にしない。",
+      "severity": "文章作成上の規則",
+      "evidence_case": "ordinary_pr_comment_pruned_and_reordered",
+      "confidence": "明示訂正の範囲は高。最終投稿全文は未確認。",
+      "existing_rule": "github-posting-rules末尾の通常PRコメントの選別へ統合。追加の独立規則は作らない。",
+      "decision": "順序だけ採用",
+      "reason": "両版とも当然の作業は省けている。旧版は理由先行、試作版は変更先行となり、明示的な訂正を再現した順序の部分だけ既存規則へ統合する。",
+      "evidence_lines": [
+        676,
+        683,
+        721,
+        728,
+        735
+      ],
+      "evaluation_cases": [
+        "ordinary_pr_comment_change_before_choice_reason",
+        "ordinary_pr_comment_explicit_complete_inventory",
+        "pr_progress_comment_decisions_only",
+        "review_evidence_link_outside_posting_rule"
+      ]
+    }
+  ],
+  "answers": {
+    "initial_baseline": [
+      {
+        "id": "case_1",
+        "response": "1. 任意: ルートに新設する `bridge_policy.json` は、同種のビルド補助データがある `tools/` に揃えるべきだと思います。今回の配置ではビルド用の設定がルートと `tools/` に分かれ、関連する設定を探す場所が増えます。ファイルを `tools/bridge_policy.json` に置き、`bundle.spec` の参照先も合わせてください。\n\n2. 任意: `bundle.spec` の追加した分岐には、回避する停止と Issue #240 の URL を残すべきだと思います。設定値だけでは必要性が分からず、後から設定を見直す際に調査理由を追えません。近い回避策に合わせ、短い NOTE と別行の Issue URL で説明できます。"
+      },
+      {
+        "id": "case_2",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_3",
+        "response": "任意: 追加コメントは、防ぐ症状と調査先へ絞るべきだと思います。必要性はコメントに残し、カーネルや allocator の詳しい経路は Issue で読める形にすると、ビルド設定を読む際に意図を追いやすくなります。近いコメントに合わせ、句点と URL 行の余分なインデントも省けます。\n\n```python\n# NOTE: Linux arm64 で native bridge の初期化が停止するのを防ぐ\n# ref: https://example.invalid/project/issues/240\n```"
+      },
+      {
+        "id": "case_4",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_5",
+        "response": "任意: 追加した条件式は、同じ spec の任意引数に合わせて明示的な None 判定へ揃えるべきだと思います。現在の呼び出しは None または非空の `release` だけなので、この変更で挙動は変わりません。\n\n```python\nif package_label is not None:\n```"
+      },
+      {
+        "id": "case_6",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_7",
+        "response": "指摘はありません。`manifest_file` の文字列化は、固定版 BundleLib 4.2 の引数の保存・復元にも対応しています。"
+      },
+      {
+        "id": "case_8",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_9",
+        "response": "任意: PR タイトルは `fix: 翻訳ファイルの解析不具合を修正` のように、最近の同種件名へ揃えるべきだと思います。このタイトルが Squash merge 後の件名になるため、履歴を見たときに不具合修正だと分かりやすくなります。明示されたタイトル規約はないので、形式上の必須修正とは扱いません。"
+      },
+      {
+        "id": "case_10",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_11",
+        "response": "- assets/ に置くと配布物へ含まれるため、ひとまず同種のファイルがある tools/ へ補助 JSON を移しました。"
+      },
+      {
+        "id": "case_12",
+        "response": "- 補助 JSON をリポジトリ直下から tools/ へ移しました。\n- 到達経路のない空文字列チェックを削除しました。\n- 意図を伝える短いコメントを追加しました。\n- PR タイトルを `fix:` 付きへ更新しました。"
+      },
+      {
+        "id": "case_13",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_14",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_15",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_16",
+        "response": "指摘はありません。\n\nタイトル: `fix: ソングのプロジェクトインポート欄へのドロップでトラック一覧を表示`\n\n## 変更概要\n\nメニューから開くソングのプロジェクトインポート画面で、ファイル入力欄へドラッグ＆ドロップしたファイルのトラック一覧を表示できるようにします。\n\n## 判断理由\n\n使用中の Quasar 2.19.3 では、ファイル選択とドラッグ＆ドロップの結果が、どちらも QFile の `update:modelValue` で通知されます。\nこの通知からファイルを受け取って読み込むことで、どちらの操作でもトラック一覧を表示します。"
+      },
+      {
+        "id": "case_17",
+        "response": "任意: `NotificationTimeReasonCode` と `WaitClass` の対応表は、コンパイル時に網羅性を確認できる形へ変えるべきだと思います。現在の配列の型は各要素の型を確認しますが、union へ理由を追加しても対応表の更新漏れを検出できず、semantic validation の実行時に例外になるまで見つかりません。`satisfies Record<NotificationTimeReasonCode, WaitClass>` を使う対応表か、到達不能分岐を持つ網羅的な `switch` にできます。現在の八つは正しく対応しているため、重大度は任意です。"
+      },
+      {
+        "id": "case_18",
+        "response": "適用対象ではありません。依頼の目的が、過去のレビューセッションを分析して既存のレビュースキルを改善・評価することであり、PR やコード差分のレビューではないためです。"
+      },
+      {
+        "id": "case_19",
+        "response": "- 有効なメニュー系ロールも指カーソルにして、ボタン系と操作感を揃えてみました。\n- 指カーソルは自動で適用されて開発者が意識する必要がないため、コーディング規約への追記は削除しました。"
+      },
+      {
+        "id": "case_20",
+        "response": "空配列を渡すと、固定版 4.2.0 では空入力として拒否され、終了処理が失敗します。[公式の契約説明](https://github.com/example/encoder/issues/19#issuecomment-1234)に沿って、最後の非空要素と同時に `finish=true` を渡す形への変更が必須だと思います。"
+      },
+      {
+        "id": "case_21",
+        "response": "任意: `exportOne` と `exportBatch` の `settings` は、try の前で const 初期化するべきだと思います。設定オブジェクトは操作中に差し替わらず、`prepare` も同じオブジェクトを更新するため、先に参照を取得しても保存する設定は変わりません。現状は両関数に不要な `let settings` と try 内代入が増えています。`const settings = assertPresent(state.items[key].settings);` を try の前へ置き、通信を伴う `prepare` とストリームの読み切りを try に残せます。一括処理でも、開始前の前提違反では進捗通知を要求しない契約なので、この移動は通知仕様と矛盾しません。"
+      },
+      {
+        "id": "case_22",
+        "response": "適用するのは refined-review-hiho です。明示的に指定されており、依頼も最新版の変更の再レビューなので、PR の通常レビューと再レビューを扱う用途に一致します。"
+      }
+    ],
+    "initial_candidate": [
+      {
+        "id": "case_1",
+        "response": "1. 任意・そうすべきだと思います — `bridge_policy.json` の配置\n\nビルド専用の補助ファイルは既に `tools/` にまとまっているため、新しい JSON もそこへ置き、`bundle.spec` の参照先を合わせると関連設定が散在しません。ルート配置による動作不良は提示資料からは確認できないため、配置整理としての指摘です。\n\n2. 任意・そうすべきだと思います — `bundle.spec` の例外設定\n\n条件と設定値だけでは、削除すると native bridge の初期化停止が再発する理由を追えません。近い回避策に合わせ、署名付き Linux arm64 パッケージで初期化停止を防ぐ旨を短い NOTE として残し、別行に Issue #240 の URL を添えると意図を保てます。内部機構の詳細は Issue に任せられます。"
+      },
+      {
+        "id": "case_2",
+        "response": "指摘はありません。ルート配置はビルドツールの公開契約と CONTRIBUTING の指定に合っており、配布物への混入もありません。"
+      },
+      {
+        "id": "case_3",
+        "response": "任意・そうすべきだと思います — ビルド設定の NOTE を、対象環境と防ぐ症状へ絞る。\n\n内部機構の詳細は Issue #240 にあるため、ソースでは回避策を残す理由を短く示せます。句点と URL 行のインデントも近いビルドコメントの形式に合わせると揃います。\n\n```python\n# NOTE: Linux arm64 で native bridge の初期化が停止するのを防ぐ\n# https://example.invalid/project/issues/240\nif sys.platform == \"linux\" and platform.machine() == \"aarch64\":\n    enable_bridge_workaround()\n```"
+      },
+      {
+        "id": "case_4",
+        "response": "指摘はありません。対象環境と防ぐ症状が短く伝わり、URL の書式も近いビルドファイルに揃っています。"
+      },
+      {
+        "id": "case_5",
+        "response": "任意・そうすべきだと思います — `if package_label:` を同じ spec の任意引数と揃える。\n\n現在の入力経路では動作上の問題はありませんが、同じ未指定判定を異なる書き方で増やしています。次の形なら、周囲と同じく None だけを未指定として表せます。\n\n```python\nif package_label is not None:\n```\n\n空文字列が届く経路は提示されていないため、空文字列を除外する条件を追加する理由はありません。"
+      },
+      {
+        "id": "case_6",
+        "response": "指摘はありません。現在の条件は、実際に指定できる空文字列と None の両方をラベルなしとして扱う公開契約に合っています。近い任意パス引数とは空文字列の契約が異なります。"
+      },
+      {
+        "id": "case_7",
+        "response": "指摘はありません。\n\n`manifest_file` の文字列化には、後続ビルドで引数を復元するための理由があります。提示された BundleLib 4.2 の実装では、Path を渡すと保存された `PosixPath(...)` を復元できず全再ビルドになります。`str(...)` は読み込み時だけでなく保存・復元にも適しており、`copytree` と書き方が異なることは問題ではありません。"
+      },
+      {
+        "id": "case_8",
+        "response": "指摘はありません。変更後の上限3回は公開要件に一致しています。"
+      },
+      {
+        "id": "case_9",
+        "response": "任意・そうすべきだと思います — PR タイトルを `fix: 翻訳ファイルの解析で境界条件を修正` などへ揃える。\n\nこのタイトルが Squash merge 後のコミット件名になるため、現在の英語かつ type のない表記は、提示された同種の最近の件名と異なる形で履歴に残ります。`fix:` と日本語の形式へ揃える提案です。明文化された必須規約への違反とは判断していません。"
+      },
+      {
+        "id": "case_10",
+        "response": "指摘はありません。タイトルは変更内容と一致し、英語の Conventional Commits 形式と末尾句点なしという明示規約にも従っています。"
+      },
+      {
+        "id": "case_11",
+        "response": "- 補助 JSON を、ひとまずルートから `tools/` へ移してみました。`assets/` は配布物へ丸ごと含まれるため、同種ファイルのある場所を選んでいます。"
+      },
+      {
+        "id": "case_12",
+        "response": "- 補助 JSON をルートから `tools/` へ移しました。\n- 到達経路のない空文字列チェックを削除しました。\n- 意図を説明する短いコメントを追加しました。\n- PR タイトルを `fix:` 付きへ更新しました。"
+      },
+      {
+        "id": "case_13",
+        "response": "指摘はありません。設定名と値で意図が分かり、配置と記述も既存形式に揃っています。"
+      },
+      {
+        "id": "case_14",
+        "response": "指摘はありません。新しい `label` は空文字列が有効で None だけが未指定なので、`is not None` が公開契約に合っています。他のオプションとは空文字列の意味が異なるため、判定の違いにも理由があります。"
+      },
+      {
+        "id": "case_15",
+        "response": "指摘はありません。変更を所有する後処理の単体テストで 44.1 kHz、ステレオ化、サンプル数、一括版との波形一致を検証しており、既存の API E2E との責務分担に沿っています。"
+      },
+      {
+        "id": "case_16",
+        "response": "指摘はありません。\n\nDraft PR タイトル案: `fix: ソングのプロジェクトインポート画面でドロップしたファイルのトラック一覧を表示`\n\n## 変更概要\n\nメニューから開くソングのプロジェクトインポート画面で、ファイル入力欄へドロップしたファイルのトラック一覧を表示できるようにします。\n\n## 判断理由\n\n使用中の Quasar 2.19.3 では、QFile はファイル選択とドラッグ＆ドロップの両方の結果を `update:modelValue` で通知します。\nこの通知から受け取った `File` を処理することで、ドラッグ＆ドロップでもトラック一覧の表示へ進めるようにします。"
+      },
+      {
+        "id": "case_17",
+        "response": "任意・そうすべきだと思います — 対応配列と `find` を、閉じた union の網羅性を型検査できる形へ変える。\n\n現在の八つは正しく対応していますが、`NotificationTimeReasonCode` が追加されても対応表の更新漏れをコンパイル時に検出できず、外部提案の semantic validation を実行した時点で例外になります。`satisfies Record<NotificationTimeReasonCode, WaitClass>` を使う対応表か、到達不能分岐を持つ網羅的な `switch` にすると、型の追加時に漏れを検出できます。"
+      },
+      {
+        "id": "case_18",
+        "response": "適用対象ではありません。依頼の対象は過去のレビューセッションの分析と既存レビュースキルの改善・評価であり、PR の通常レビューや再レビューではないためです。"
+      },
+      {
+        "id": "case_19",
+        "response": "- 有効なメニュー系ロールも指カーソルにしてみました。ボタン系と操作感を揃える意図です。\n- コーディング規約への追記は削除しました。自動適用されるため、開発者が意識して対応する必要はないと考えました。"
+      },
+      {
+        "id": "case_20",
+        "response": "固定版 4.2.0 は空入力を拒否するため、この空配列による終了処理は失敗します。[公式の契約説明](https://github.com/example/encoder/issues/19#issuecomment-1234)にあるとおり、最後の非空要素を渡す呼び出しで `finish=true` を指定する形に直すべきだと思います。"
+      },
+      {
+        "id": "case_21",
+        "response": "任意・そうすべきだと思います — `exportOne` と `exportBatch` の `settings` 取得を `try` の前へまとめる。\n\n両方で追加された `let settings` は、`const settings = assertPresent(state.items[key].settings);` として `prepare` より前に置けます。設定オブジェクトは差し替えられず、`prepare` の更新も同じ参照へ反映されるため、保存時に更新済みの設定を使えます。前提検査と通信失敗の捕捉範囲を分け、不要な可変変数も減らせます。\n\n`prepare` とストリームの読み切りは通信失敗を起こすため `try` に残し、その結果を外で使う `bytes` の `let` も維持できます。一括処理の成功・通信失敗の進捗通知は、現在の `finally` で一度ずつ維持できます。内部前提違反の進捗通知は要求されていないため、前提検査を `finally` の外へ移しても通知契約に反しません。\n\n変更前も `fetchAsset` 内の `assertPresent` は同じ `catch` に捕捉されているため、誤分類が今回新たに生じたという指摘ではありません。今回増えた宣言と捕捉範囲の整理としての提案です。"
+      },
+      {
+        "id": "case_22",
+        "response": "`refined-review-hiho` を適用します。最新版の変更の再レビューを明示した依頼であり、過去セッションの分析や既存レビュースキルの改善は求められていないためです。"
+      }
+    ],
+    "corrected_baseline": [
+      {
+        "id": "case_1",
+        "response": "指摘はありません。\n\n提示されたコードと BundleLib 4.2 の契約の範囲では、今回の変更が生む具体的な問題は確認できませんでした。設定ファイルはビルド時に消費されるため、配布物へ追加する必要もありません。"
+      },
+      {
+        "id": "case_3",
+        "response": "Nit: コメント案の1〜2行目は、近い既存例の1〜2行目に表記を揃えるべきだと思います。URL 行の余分な字下げと `ref:`、本文末の句点が既存例と異なります。対象環境と設定の目的を残し、詳しい呼び出し順は Issue #240 に委ねると、コメントを短くできます。\n\n```python\n# NOTE: Linux arm64 で native bridge の初期化が停止するのを防ぐ\n# https://example.invalid/project/issues/240\n```"
+      }
+    ],
+    "corrected_candidate": [
+      {
+        "id": "case_1",
+        "response": "1. 任意: ビルド専用の設定を既存の配置へ揃える\n\n   対象: `bridge_policy.json:1`、`bundle.spec:8`\n\n   新設する `bridge_policy.json` はビルド時だけに使う設定ですが、同種の `tools/bundle_policy.json` から離れたルートへ置くため、ビルド用の設定が分散します。`tools/bridge_policy.json` へ置き、`bundle.spec:8` の参照先も合わせるとよいです。`resources/` は `bundle.spec:11` で配布物へ一括コピーされるため、この設定の移動先には適しません。\n\n   証拠があってそうすべきと判断します。指定版の[配置規則](/tmp/hiho-refine-review-01a18869/candidate/refined-review-hiho/references/session-derived-rules.md:9)が、役割の近い既存配置へ合わせるよう定めています。配置の整理なので重大度は任意です。\n\n2. 任意: 回避策が防ぐ症状と関連 Issue をソースに残す\n\n   対象: `bundle.spec:7`\n\n   追加された条件と設定値だけでは、この設定を削除すると署名付き Linux arm64 パッケージで native bridge の初期化が停止することを読み取れません。既存の `tools/patch_bundle.py:1` と同じ NOTE の書式で、対象環境と防ぐ症状を短く記し、続けて Issue #240 へのリンクを置くと、設定の必要性をソースから追えます。内部機構の詳しい説明は Issue に任せられます。\n\n   証拠があってそうすべきと判断します。指定版の[回避策の規則](/tmp/hiho-refine-review-01a18869/candidate/refined-review-hiho/references/session-derived-rules.md:25)が、周囲の書式で対象環境と防ぐ症状を残すよう定めています。\n\n提示範囲に修正必須・修正推奨の問題はありません。確認済みの BundleLib 4.2 の契約から、設定ファイルを実行時に配布する必要や、この設定による追加の権限変更はありません。"
+      },
+      {
+        "id": "case_3",
+        "response": "任意: 提示されたコメントの 1〜2 行目は、詳細を削り、近い既存例の書式にそろえるべきだと思います。\n\nIssue #240 に内部機構と呼び出し順の詳細があるため、コメントにも列挙すると説明を二重に保守することになります。設定の必要性がコードだけでは分からないので、読みやすさに必要な対象環境と防ぐ症状は残し、句点、`ref:`、URL 行の字下げを既存例にそろえてください。\n\n```python\n# NOTE: Linux arm64 で native bridge の初期化が待機し続けるのを防ぐ\n# https://example.invalid/project/issues/240\n```"
+      }
+    ],
+    "final": [
+      {
+        "id": "case_1",
+        "response": "1. 任意・証拠があってそうすべき — `bridge_policy.json:1`\n\n今回追加する JSON はビルド専用で、既存の `tools/bundle_policy.json` と役割が近いため、ルートへ新設すると関連する補助設定が分散します。`tools/bridge_policy.json` に置き、`bundle.spec` の参照先も合わせると配置を統一できます。[配置規則](/tmp/hiho-refine-review-01a18869/final/refined-review-hiho/references/session-derived-rules.md:9)に沿う提案です。`resources/` は一括で配布されるため、このファイルの配置先には適しません。\n\n2. 任意・証拠があってそうすべき — `bundle.spec:7`\n\n追加された条件と `policy_file` の指定だけでは、署名付き Linux arm64 で native bridge の初期化停止を防ぐための設定だと分かりません。保守時に設定を取り除いて症状を再発させないよう、近くの既存例と同じ `NOTE:` 形式で対象環境と防ぐ症状を短く残し、次行に Issue #240 の URL を置くと意図を追えます。[回避策の記述規則](/tmp/hiho-refine-review-01a18869/final/refined-review-hiho/references/session-derived-rules.md:17)に沿う提案です。"
+      },
+      {
+        "id": "case_2",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_3",
+        "response": "任意・証拠があってそうすべき — 追加する NOTE と URL の行\n\n内部機構の詳細は Issue #240 で追えるため、コメントは Linux arm64 と初期化停止という必要な意図に絞ると読み取りやすくなります。[回避策の記述規則](/tmp/hiho-refine-review-01a18869/final/refined-review-hiho/references/session-derived-rules.md:17)に沿う提案です。近い既存例に合わせ、句点を省き、URL の行はインデントと `ref:` を付けずに揃えます。\n\n```python\n# NOTE: Linux arm64 で native bridge の初期化が停止するのを防ぐ\n# https://example.invalid/project/issues/240\n```"
+      },
+      {
+        "id": "case_4",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_11",
+        "response": "- 補助 JSON はひとまず `tools/` へ移しました。`assets/` では配布物へ含まれるため、同種ファイルのある場所を選びました。"
+      },
+      {
+        "id": "case_12",
+        "response": "- 補助 JSON をリポジトリ直下から `tools/` へ移しました。\n- 到達経路のない空文字列チェックを削除しました。\n- 意図を説明する短いコメントを追加しました。\n- PR タイトルを `fix:` 付きへ更新しました。"
+      },
+      {
+        "id": "case_13",
+        "response": "指摘はありません。"
+      },
+      {
+        "id": "case_18",
+        "response": "適用対象ではありません。依頼は PR のコード差分をレビューする作業ではなく、過去のレビューセッションを分析し、既存のレビュースキルを改善・評価する作業だからです。"
+      },
+      {
+        "id": "case_19",
+        "response": "- メニュー系ロールも指カーソルにしてみました。ボタン系と操作感を揃えるためです。\n- コーディング規約への追記を削除しました。自動で適用されるため、開発者に意識してもらう必要はないと考えました。"
+      },
+      {
+        "id": "case_20",
+        "response": "4.2.0 は空入力を拒否するため、この空配列による終了処理は失敗します。[公式の契約説明](https://github.com/example/encoder/issues/19#issuecomment-1234)では、最後の非空要素を渡す呼び出しで `finish=true` を指定する契約になっています。"
+      },
+      {
+        "id": "case_22",
+        "response": "適用するスキルは `refined-review-hiho` です。明示指定があり、PR #42 の最新変更を再レビューする依頼に当たるためです。"
+      }
+    ]
+  },
+  "input_versions": {
+    "initial": [
+      {
+        "id": "build_only_file_placement_and_missing_intent",
+        "prompt_lines": [
+          "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+          "",
+          "PR は署名付き Linux arm64 のパッケージで起動時の native bridge 初期化停止を防ぐ例外設定を追加します。固定版ランタイムではこの設定で停止が解消することを確認しています。新しい設定はビルド時だけ使います。",
+          "",
+          "現在の構成と既存コード:",
+          "- tools/patch_bundle.py と tools/bundle_policy.json はビルド専用です。",
+          "- resources/ は実行時の画像と辞書を置く場所です。bundle.spec は resources/ 全体を配布物へコピーします。",
+          "- tools/patch_bundle.py の近い回避策には、なぜ必要かを NOTE と Issue URL で残しています。",
+          "- リポジトリのルートには既存のビルド補助データはありません。ツールは設定ファイルの任意パスを受け取れます。",
+          "",
+          "今回の変更: ルートへ bridge_policy.json を新設し、bundle.spec に次を追加します。設定値だけでは、どの停止を防ぐかは分かりません。PR からリンクする Issue #240 に詳細な調査があります。",
+          "```python",
+          "policy_file: str | None = None",
+          "if sys.platform == \"linux\" and platform.machine() == \"aarch64\" and options.signing is not None:",
+          "    policy_file = str(Path(SPECPATH) / \"bridge_policy.json\")",
+          "```"
+        ],
+        "assertions": [
+          "同種のビルド補助ファイルがある tools などへの配置整理を任意の改善として提案する",
+          "resources の一括コピーを確認し、ビルド専用設定を不要に配布物へ入れる場所へ移さない",
+          "設定値と条件だけでは防ぐ症状が分からないことを指摘し、短い意図コメントと必要ならIssue参照を提案する",
+          "ビルドや起動の不具合が残っているとは断定せず、配置と意図の整理を修正必須へ上げない"
+        ]
+      },
+      {
+        "id": "workaround_note_environment_and_symptom",
+        "prompt_lines": [
+          "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+          "",
+          "再レビューです。ビルド設定に追加するコメントを次のように提案しています。近い既存のビルドコメントは NOTE: を使い、行末の句点なし、別行の Issue URL です。Issue #240 にはカーネル、allocator、native bridge の詳細な呼び出し順が記録されています。この設定の必要性はコードだけでは読み取れません。対象環境名がある方がビルド設定を読みやすくなります。コメント案も必要なら示してください。",
+          "```python",
+          "# NOTE: Linux arm64 の保護機構下で allocator が実行可能領域を予約できず native bridge のスレッド起動時の初期化が待機し続けるため、権限検査を回避して予約を成功させ初期化を進める。",
+          "  # ref: https://example.invalid/project/issues/240",
+          "if sys.platform == \"linux\" and platform.machine() == \"aarch64\":",
+          "    enable_bridge_workaround()",
+          "```"
+        ],
+        "assertions": [
+          "コメントを対象環境と防ぐ症状へ絞る任意の整理を提案する",
+          "詳細な内部機構の列挙をそのまま残すことを必須にしない",
+          "条件式から分かるという理由だけで環境名を削除しない",
+          "近い既存例に合わせNOTEの句点なしと独立したURL行の形式を使い、URLにrefを機械的に足さない"
+        ]
+      }
+    ],
+    "corrected": [
+      {
+        "id": "build_only_file_placement_and_missing_intent",
+        "prompt_lines": [
+          "次の PR を $refined-review-hiho でレビューしてください。提示した PR 本文と最新コード抜粋、指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+          "",
+          "PR 本文:",
+          "署名付き Linux arm64 のパッケージで native bridge の初期化が停止する問題を修正します。BundleLib 4.2 に policy_file を渡し、ランタイムの例外設定を有効にします。Issue #240 に原因調査があります。最小プログラムでは停止が解消しました。",
+          "",
+          "変更ファイルは bundle.spec と bridge_policy.json です。bundle.spec には policy_file の選択と build への引数だけを追加しています。bridge_policy.json は新設です。",
+          "",
+          "現在の配置:",
+          "```text",
+          "bundle.spec",
+          "bridge_policy.json",
+          "resources/",
+          "  logo.png",
+          "  dictionary.bin",
+          "tools/",
+          "  patch_bundle.py",
+          "  bundle_policy.json",
+          "```",
+          "",
+          "bundle.spec:",
+          "```python",
+          "from pathlib import Path",
+          "from shutil import copytree",
+          "import platform",
+          "import sys",
+          "",
+          "policy_file: str | None = None",
+          "if sys.platform == \"linux\" and platform.machine() == \"aarch64\" and options.signing is not None:",
+          "    policy_file = str(Path(SPECPATH) / \"bridge_policy.json\")",
+          "",
+          "build(policy_file=policy_file)",
+          "copytree(Path(\"resources\"), Path(DISTPATH) / \"resources\")",
+          "```",
+          "",
+          "bridge_policy.json:",
+          "```json",
+          "{\"allow_executable_memory\": true}",
+          "```",
+          "",
+          "tools/patch_bundle.py:",
+          "```python",
+          "# NOTE: FreeBSD で辞書のロードが停止するのを防ぐ",
+          "# https://example.invalid/project/issues/172",
+          "patch_bundle(Path(__file__).parent / \"bundle_policy.json\")",
+          "```",
+          "",
+          "tools/bundle_policy.json:",
+          "```json",
+          "{\"skip_dictionary_relocation\": true}",
+          "```",
+          "",
+          "BundleLib 4.2 の確認済み契約: build の policy_file は設定ファイルの任意パスを受け取れます。ファイルはビルド時に消費し、実行時には不要です。この設定以外の権限は変化しません。"
+        ],
+        "assertions": [
+          "同種のビルド補助ファイルがある tools などへの配置整理を任意の改善として提案する",
+          "resources の一括コピーを確認し、ビルド専用設定を不要に配布物へ入れる場所へ移さない",
+          "設定値と条件だけでは防ぐ症状が分からないことを指摘し、短い意図コメントと必要ならIssue参照を提案する",
+          "ビルドや起動の不具合が残っているとは断定せず、配置と意図の整理を修正必須へ上げない"
+        ]
+      },
+      {
+        "id": "workaround_note_environment_and_symptom",
+        "prompt_lines": [
+          "次の変更を $refined-review-hiho でレビューしてください。提示資料と指定版スキルの参照ファイルだけを使い、コード変更、実行、Git、ネットワーク、ブラウザ、外部投稿は行わないでください。省略した実装とテストは正常です。",
+          "",
+          "再レビューです。ビルド設定に追加するコメントを次のように提案しています。近い既存のビルドコメントは NOTE: を使い、行末の句点なし、別行の Issue URL です。Issue #240 にはカーネル、allocator、native bridge の詳細な呼び出し順が記録されています。この設定の必要性はコードだけでは読み取れません。対象環境名がある方がビルド設定を読みやすくなります。コメント案も必要なら示してください。",
+          "近い既存例:",
+          "```python",
+          "# NOTE: FreeBSD で辞書ロードが停止するのを防ぐ",
+          "# https://example.invalid/project/issues/172",
+          "```",
+          "```python",
+          "# NOTE: Linux arm64 の保護機構下で allocator が実行可能領域を予約できず native bridge のスレッド起動時の初期化が待機し続けるため、権限検査を回避して予約を成功させ初期化を進める。",
+          "  # ref: https://example.invalid/project/issues/240",
+          "if sys.platform == \"linux\" and platform.machine() == \"aarch64\":",
+          "    enable_bridge_workaround()",
+          "```"
+        ],
+        "assertions": [
+          "コメントを対象環境と防ぐ症状へ絞る任意の整理を提案する",
+          "詳細な内部機構の列挙をそのまま残すことを必須にしない",
+          "条件式から分かるという理由だけで環境名を削除しない",
+          "近い既存例に合わせNOTEの句点なしと独立したURL行の形式を使い、URLにrefを機械的に足さない"
+        ]
+      }
+    ]
+  }
+}
