@@ -557,7 +557,7 @@ def convert_claude_agent_model_to_codex(
 ) -> tuple[str, str]:
     """Claude Code のモデル指定を Codex のモデル指定へ変換"""
     if claude_model == "sonnet":
-        return "gpt-5.6-luna", "max"
+        return "gpt-6-luna", "max"
     raise RuntimeError(
         f"{agent_path} に Codex へ変換できないモデル指定があります: {claude_model}"
     )
